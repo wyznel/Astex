@@ -1,0 +1,52 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# Xcode
+xcuserdata/
+DerivedData/
+*.xcscmblueprint
+*.xccheckout
+*.xcworkspace
+*.xcodeproj
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+.build/
+.swiftpm/
+/Packages
+Package.resolved
+
+# Build outputs
+Liberty.app/
+*.app/
+*.dmg
+*.ipa
+*.dSYM/
+*.dSYM.zip
+
+# Environment / secrets
+.env
+.env.*
+.netrc
+
+# IDE
+.vscode/
+.idea/
+
+# Gemini
+.gemini/
+
+*.sh

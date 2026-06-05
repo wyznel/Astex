@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
   name: "Liberty-Swift",
   platforms: [
-    .macOS(.v15)
+    .macOS(.v26)
   ],
 
   targets: [
