@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct Liberty_Swift: App {
+struct Astex: App {
 
   init() {
     #if os(macOS)
