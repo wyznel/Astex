@@ -10,6 +10,7 @@ struct Liberty_Swift: App {
         NSApp.activate(ignoringOtherApps: true)
       }
     #endif
+
   }
 
   var body: some Scene {

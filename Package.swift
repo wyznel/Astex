@@ -8,16 +8,24 @@ let package = Package(
   platforms: [
     .macOS(.v26)
   ],
-
+  dependencies: [
+    .package(url: "https://github.com/mattt/ollama-swift.git", from: "1.8.0")
+  ],
   targets: [
     // Targets are the basic building blocks of a package, defining a module or a test suite.
     // Targets can depend on other targets in this package and products from dependencies.
     .executableTarget(
-      name: "Liberty-Swift"
+      name: "Liberty-Swift",
+      dependencies: [
+        .product(name: "Ollama", package: "ollama-swift")
+      ]
     ),
+
     .testTarget(
       name: "Liberty-SwiftTests",
-      dependencies: ["Liberty-Swift"]
+      dependencies: [
+        "Liberty-Swift"
+      ]
     ),
   ],
   swiftLanguageModes: [.v6]

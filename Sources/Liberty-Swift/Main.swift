@@ -7,21 +7,32 @@ struct MainWindow: View {
 
   @State private var isSendButtonDisabled: Bool = true
 
-  @State private var userMessagesList: [String] = []
-  @State private var llmResponseList: [String] = []
+  @State private var messageList: [Message] = []
+  @State private var streamingChunks: [String] = []
+  private let chunkCharLimit = 500
 
   private var scaleFactor = 1.2
   private var animationDelay = 0.25
+
+  private let llm = LLM()
+
   var body: some View {
     VStack(spacing: 12) {
       if !chatWindowEmpty {
         Spacer()
         ScrollView {
-          ForEach(userMessagesList.indices, id: \.self) { index in
-            UserMessageView(userMessagesList[index])
-          }
-          ForEach(llmResponseList.indices, id: \.self) { index in
-            Text(llmResponseList[index])
+          LazyVStack(spacing: 0) {
+            ForEach(messageList) { message in
+              if message.isUser {
+                UserMessageView(message.response)
+              } else {
+                llmMessageView(message.response)
+              }
+            }
+            // Streaming in-progress chunks
+            ForEach(streamingChunks.indices, id: \.self) { i in
+              llmMessageView(streamingChunks[i])
+            }
           }
         }
       }
@@ -51,15 +62,15 @@ struct MainWindow: View {
                 return .ignored
               }
               guard !prompt.isEmpty else { return .handled }
-              userMessagesList.append(prompt)
-              prompt.removeAll()
-              chatWindowEmpty = false
+              Task { @MainActor in
+                await handlePromptSending()
+              }
               return .handled
             }
           Button {
-            userMessagesList.append(prompt)
-            prompt.removeAll()
-            chatWindowEmpty = false
+            Task { @MainActor in
+              await handlePromptSending()
+            }
           } label: {
             Image(systemName: "arrow.up")
               .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -96,10 +107,48 @@ struct MainWindow: View {
         Spacer()
         Image(systemName: "gearshape")
       }
+      .selectionDisabled()
       .padding()
       .glassEffect(.regular, in: .rect)
     }
   }
+
+  func handlePromptSending() async {
+    let currentPrompt = prompt
+    prompt.removeAll()
+    chatWindowEmpty = false
+
+    messageList.append(Message(isUser: true, response: currentPrompt))
+
+    // Start with one empty chunk
+    streamingChunks = [""]
+
+    do {
+      let stream = llm.generateStream(currentPrompt)
+
+      for try await chunk in stream {
+        streamingChunks[streamingChunks.count - 1] += chunk
+        // If the current chunk has grown too large, start a new one
+        if streamingChunks.last!.count >= chunkCharLimit {
+          streamingChunks.append("")
+        }
+      }
+    } catch {
+      streamingChunks[streamingChunks.count - 1] = "LLM failed to respond."
+    }
+
+    // Collapse all chunks into a single completed Message
+    let fullResponse = streamingChunks.joined()
+    messageList.append(Message(isUser: false, response: fullResponse))
+    streamingChunks = []
+  }
+
+}
+
+struct Message: Identifiable {
+  let id = UUID()
+  let isUser: Bool
+  var response: String
 }
 
 @ViewBuilder
@@ -111,6 +160,18 @@ func UserMessageView(_ message: String) -> some View {
       .padding(.vertical, 10)
       .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 6))
       .frame(maxWidth: 750, alignment: .trailing)
+  }
+}
 
+@ViewBuilder
+func llmMessageView(_ message: String) -> some View {
+  HStack {
+    Text(message)
+      .textSelection(.enabled)
+      .padding(.horizontal, 10)
+      .padding(.vertical, 10)
+      .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 6))
+      .frame(maxWidth: 750, alignment: .leading)
+    Spacer()
   }
 }
