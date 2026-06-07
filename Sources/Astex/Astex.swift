@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 @main
@@ -10,7 +11,6 @@ struct Astex: App {
         NSApp.activate(ignoringOtherApps: true)
       }
     #endif
-
   }
 
   var body: some Scene {

@@ -1,8 +1,11 @@
 import Ollama
+import SwiftUI
 
 @MainActor
 class LLM {
   let client = Client.default
+
+  @State public var isResponseFinished: Bool = true
 
   func generateStream(
     _ previousMessages: [Message]
@@ -11,7 +14,7 @@ class LLM {
 
       Task { @MainActor in
         do {
-          let messageHistory = previousMessages.map { message -> Chat.Message in
+          let messageHistory = previousMessages.map { message -> Ollama.Chat.Message in
             if message.isUser {
               return .user(message.response)
             } else {

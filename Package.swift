@@ -18,6 +18,9 @@ let package = Package(
       name: "Astex",
       dependencies: [
         .product(name: "Ollama", package: "ollama-swift")
+      ],
+      linkerSettings: [
+        .linkedFramework("SwiftData")
       ]
     ),
 

@@ -1,11 +1,14 @@
+import SwiftData
 import SwiftUI
 
 struct MainWindow: View {
+
   @State private var prompt: String = ""
   @State private var chatWindowEmpty: Bool = true
   @State private var isSendButtonHovered: Bool = false
-  @State private var isMenuHovered: Bool = false
   @State private var isSendButtonDisabled: Bool = true
+  @State private var isAResponseGenerating: Bool = false
+  @ObservedObject private var settings = Settings.shared
 
   @State private var messageList: [Message] = []
   @State private var streamingChunks: [String] = []
@@ -30,8 +33,7 @@ struct MainWindow: View {
                 llmMessageView(message.response)
               }
             }
-            // Streaming in-progress chunks — grouped so all chunks share
-            // the width of the widest one rather than sizing independently.
+            // Streaming in-progress chunks, they're grouped so all chunks share the width of the widest one rather than sizing independently.
             if !streamingChunks.isEmpty {
               HStack {
                 VStack(alignment: .leading, spacing: 6) {
@@ -44,23 +46,34 @@ struct MainWindow: View {
                       .transition(.opacity.combined(with: .scale))
                   }
                 }
-                .glassEffect(Settings.shared.glassEffect.interactive(), in: .rect(cornerRadius: 6))
+                .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 6))
                 .frame(maxWidth: 550, alignment: .leading)
                 Spacer()
               }
-              .padding(.leading, 200)
             }
           }
+          .frame(maxWidth: 810)
         }
+        .frame(maxWidth: 810)
       }
-      GlassEffectContainer {
-        userInputArea()
+      VStack(alignment: .leading, spacing: 10) {
+        Text("Astex")
+          .font(.system(size: 32, weight: .bold, design: .monospaced))
+          .foregroundStyle(.ultraThickMaterial)
+          .opacity(chatWindowEmpty ? 1 : 0)
+          .animation(.spring(duration: animationDelay * 2), value: chatWindowEmpty)
+        GlassEffectContainer {
+          userInputArea()
+        }
+        .onChange(of: prompt) {
+          isSendButtonDisabled = prompt.isEmpty || isAResponseGenerating
+        }
+        .padding(.bottom, 12)
+        .animation(.spring(duration: animationDelay + 0.25), value: prompt.isEmpty)
       }
-      .onChange(of: prompt) {
-        isSendButtonDisabled = prompt.isEmpty
-      }
-      .padding(.bottom, 12)
+      .frame(maxWidth: 810)
       .animation(.spring(duration: animationDelay + 0.25), value: prompt.isEmpty)
+
     }
     .padding(.horizontal, 10)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -70,11 +83,19 @@ struct MainWindow: View {
     )
     .animation(.spring(duration: animationDelay), value: isSendButtonHovered)
     .overlay(alignment: .leading) {
-      sideBarMenu()
+      Sidebar {
+        // Store chat somehow, show chat in sidebar.
+
+        messageList = []
+        streamingChunks = []
+        chatWindowEmpty = true
+      }
     }
   }
 
   func handlePromptSending() async {
+    isAResponseGenerating = true
+
     let currentPrompt = prompt
     prompt.removeAll()
     chatWindowEmpty = false
@@ -105,6 +126,7 @@ struct MainWindow: View {
       messageList.append(Message(isUser: false, response: fullResponse))
     }
     streamingChunks = []
+    isAResponseGenerating = false
   }
 
   @ViewBuilder
@@ -114,10 +136,9 @@ struct MainWindow: View {
       Text(message)
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
-        .glassEffect(Settings.shared.glassEffect.interactive(), in: .rect(cornerRadius: 6))
+        .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 6))
         .frame(maxWidth: 550, alignment: .trailing)
     }
-    .padding(.trailing, 200)
   }
 
   @ViewBuilder
@@ -127,11 +148,10 @@ struct MainWindow: View {
         .textSelection(.enabled)
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
-        .glassEffect(Settings.shared.glassEffect.interactive(), in: .rect(cornerRadius: 6))
+        .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 6))
         .frame(maxWidth: 550, alignment: .leading)
       Spacer()
     }
-    .padding(.leading, 200)
   }
 
   @ViewBuilder
@@ -145,6 +165,7 @@ struct MainWindow: View {
         .frame(minHeight: 30, maxHeight: 200)
         .frame(width: prompt.isEmpty ? 400 : 750)
         .fixedSize(horizontal: false, vertical: true)
+        .scrollDisabled(prompt.isEmpty)
         .overlay(alignment: .topLeading) {
           if prompt.isEmpty {
             Text("Enter prompt")
@@ -155,7 +176,7 @@ struct MainWindow: View {
               .allowsHitTesting(false)
           }
         }
-        .glassEffect(Settings.shared.glassEffect.interactive(), in: .rect(cornerRadius: 6))
+        .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 6))
         .onKeyPress(keys: [.return], phases: .down) { keyPress in
           if keyPress.modifiers.contains(.shift) {
             return .ignored
@@ -188,66 +209,4 @@ struct MainWindow: View {
     }
   }
 
-  @State private var isNewChatButtonHovered: Bool = false
-  @State private var isSettingsButtonHovered: Bool = false
-
-  @ViewBuilder
-  func sideBarMenu() -> some View {
-    VStack {
-      //Have button highlight some way when hovered over.
-      Button {
-        withAnimation(.spring(duration: 0.5)) {
-          self.messageList = []
-          self.streamingChunks = []
-          self.chatWindowEmpty = true
-        }
-      } label: {
-        HStack {
-          Image(systemName: "square.and.pencil")
-            .contentShape(RoundedRectangle(cornerRadius: 6))
-          if isMenuHovered {
-            Text("New Chat")
-            Spacer()
-          }
-        }
-      }
-      .padding(2)
-      .buttonStyle(.plain)
-      .background(
-        isNewChatButtonHovered ? Color.white.opacity(0.2) : Color.clear,
-        in: RoundedRectangle(cornerRadius: 6)
-      )
-      .scaleEffect(isNewChatButtonHovered ? 1.1 : 1.0)
-      .onHover { hover in
-        isNewChatButtonHovered = hover
-      }
-      .animation(.spring(duration: animationDelay), value: isNewChatButtonHovered)
-
-      Spacer()
-      HStack {
-        Image(systemName: "gearshape")
-        if isMenuHovered {
-          Text("Settings")
-          Spacer()
-        }
-      }
-      .frame(width: 100)
-    }
-    .frame(width: isMenuHovered ? 115 : 25)
-    .onHover { hover in
-      isMenuHovered = hover
-    }
-    .selectionDisabled()
-    .padding()
-    .glassEffect(Settings.shared.glassEffect, in: .rect(cornerRadius: 6))
-    .padding(.vertical, 100)
-    .animation(.spring(duration: animationDelay), value: isMenuHovered)
-  }
-
-}
-
-struct Message: Identifiable {
-  let id = UUID()
-  let isUser: Bool
-  var response: String
 }

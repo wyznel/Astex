@@ -7,5 +7,10 @@ class Settings: ObservableObject {
   @Published var glassEffect: Glass = .regular
   @Published var colorScheme: ColorScheme = .light
 
+  var holdSideBarMenuOpen: Bool = UserDefaults.standard.bool(forKey: "holdSideBarMenuOpen") {
+    willSet { objectWillChange.send() }
+    didSet { UserDefaults.standard.set(holdSideBarMenuOpen, forKey: "holdSideBarMenuOpen") }
+  }
+
   private init() {}
 }
