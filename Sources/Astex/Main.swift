@@ -10,7 +10,9 @@ struct MainWindow: View {
   @State private var isAResponseGenerating: Bool = false
   @ObservedObject private var settings = Settings.shared
 
-  @State private var messageList: [Message] = []
+  // @State private var messageList: [Message] = []
+  @Environment(\.modelContext) private var context
+  @State private var activeChat: Chat? = nil
   @State private var streamingChunks: [String] = []
   private let chunkCharLimit = 1000
 
@@ -25,7 +27,10 @@ struct MainWindow: View {
         Spacer()
         ScrollView {
           LazyVStack(spacing: 10) {
-            ForEach(messageList) { message in
+            ForEach(
+              (activeChat?.messages ?? []).sorted(by: { msg, msg1 in msg.createdAt < msg1.createdAt
+              })
+            ) { message in
               if message.isUser {
                 UserMessageView(message.response)
                   .transition(.opacity.combined(with: .scale))
@@ -83,13 +88,29 @@ struct MainWindow: View {
     )
     .animation(.spring(duration: animationDelay), value: isSendButtonHovered)
     .overlay(alignment: .leading) {
-      Sidebar {
-        // Store chat somehow, show chat in sidebar.
+      Sidebar(
+        onNewChat: {
+          activeChat = nil
+          streamingChunks = []
+          chatWindowEmpty = true
+        },
+        onSelectChat: { chat in
+          activeChat = chat
+          streamingChunks = []
+          chatWindowEmpty = chat.messages.isEmpty
+        },
+        onDeleteChat: { chat in
+          if chat == activeChat {
+            activeChat = nil
+            streamingChunks = []
+            withAnimation {
+              chatWindowEmpty = true
+            }
+          }
+          context.delete(chat)
+        }
 
-        messageList = []
-        streamingChunks = []
-        chatWindowEmpty = true
-      }
+      )
     }
   }
 
@@ -97,17 +118,26 @@ struct MainWindow: View {
     isAResponseGenerating = true
 
     let currentPrompt = prompt
+
+    if activeChat == nil {
+      let chat = Chat(title: currentPrompt)
+      context.insert(chat)
+      activeChat = chat
+    }
+
     prompt.removeAll()
     chatWindowEmpty = false
 
     withAnimation(.spring(duration: animationDelay)) {
-      messageList.append(Message(isUser: true, response: currentPrompt))
+      let userMessage = Message(isUser: true, response: currentPrompt)
+      context.insert(userMessage)
+      activeChat?.messages.append(userMessage)
       // Start with one empty chunk
       streamingChunks = [""]
     }
 
     do {
-      let stream = llm.generateStream(messageList)
+      let stream = llm.generateStream(activeChat?.messages ?? [])
 
       for try await chunk in stream {
         streamingChunks[streamingChunks.count - 1] += chunk
@@ -123,7 +153,9 @@ struct MainWindow: View {
     // Collapse all chunks into a single completed Message
     let fullResponse = streamingChunks.joined()
     withAnimation(.spring(duration: animationDelay)) {
-      messageList.append(Message(isUser: false, response: fullResponse))
+      let llmMessage = Message(isUser: false, response: fullResponse)
+      context.insert(llmMessage)
+      activeChat?.messages.append(llmMessage)
     }
     streamingChunks = []
     isAResponseGenerating = false

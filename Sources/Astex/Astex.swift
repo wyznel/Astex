@@ -17,5 +17,6 @@ struct Astex: App {
     WindowGroup {
       ContentView()
     }
+    .modelContainer(for: [Chat.self, Message.self])
   }
 }
