@@ -20,6 +20,8 @@ struct Sidebar: View {
     @State private var isNewChatButtonHovered: Bool = false
     @State private var editingChatID: Chat.ID? = nil
     
+    @FocusState private var editTitleFocused: Bool
+    
     init(
         onNewChat: @escaping () -> Void, onSelectChat: @escaping (Chat) -> Void,
         onDeleteChat: @escaping (Chat) -> Void
@@ -135,6 +137,7 @@ struct Sidebar: View {
                                     .allowsHitTesting(false)
                             }
                         }
+                        .focused($editTitleFocused)
                 }else{
                     Button {
                         onSelectChat(chat)
@@ -156,6 +159,7 @@ struct Sidebar: View {
                         }
                         Button("Edit Title", systemImage: "pencil") {
                             //Allow for a custom title.
+                            editTitleFocused = true
                             newChatTitleName = chat.title
                             editingChatID = chat.id
                         }
