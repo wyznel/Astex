@@ -138,6 +138,11 @@ struct Sidebar: View {
                             }
                         }
                         .focused($editTitleFocused)
+                        .onAppear {
+                            DispatchQueue.main.async {
+                                self.editTitleFocused = true
+                            }
+                        }
                 }else{
                     Button {
                         onSelectChat(chat)
@@ -159,7 +164,6 @@ struct Sidebar: View {
                         }
                         Button("Edit Title", systemImage: "pencil") {
                             //Allow for a custom title.
-                            editTitleFocused = true
                             newChatTitleName = chat.title
                             editingChatID = chat.id
                         }
