@@ -3,20 +3,20 @@ import SwiftUI
 
 @main
 struct Astex: App {
-
-  init() {
-    #if os(macOS)
-      DispatchQueue.main.async {
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
-      }
-    #endif
-  }
-
-  var body: some Scene {
-    WindowGroup {
-      ContentView()
+    
+    init() {
+#if os(macOS)
+        DispatchQueue.main.async {
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+#endif
     }
-    .modelContainer(for: [Chat.self, Message.self])
-  }
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+        .modelContainer(for: [Chat.self, Message.self])
+    
+    }
 }
