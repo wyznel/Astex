@@ -1,4 +1,4 @@
-# Liberty — TODO
+# Astex — TODO
 
 ## Important
 - [ ] Create README
@@ -14,10 +14,10 @@
         - [ ] Download, list, delete, etc. models.
         - [ ] Global ruleset/instructions for models to follow.
     - [ ] Appearance
-        - [ ] Light/Dark/Auto colour modes.
-        - [ ] Change "harshness" of liquid glass effects
+        - [ ] Light/Dark/Auto colour modes
+        - [ ] Allow user to alter "harshness" of liquid glass effects -> Might be irrelevant as of macOS Golden Gate.
 
-- [ ] Add support for OpenAI, Anthropic, Google and other models.
+- [ ] Add support for using cloud models.
 ## Bugs
 - [X] User is currently allowed to send a message whilst llm is generating a response.
 - [X] Hold Sidebar open button "runs away" when hovering over.

@@ -7,12 +7,10 @@ class LLM {
     
     @State public var isResponseFinished: Bool = true
     
-    func generateStream(
-        _ previousMessages: [Message]
-    ) -> AsyncThrowingStream<String, Error> {
-        return AsyncThrowingStream { continuation in
+    func generateStream(_ previousMessages: [Message]) -> AsyncThrowingStream<String, Error> {
+        return AsyncThrowingStream<String, Error> { continuation in
             
-            Task { @MainActor in
+            let task = Task { @MainActor in
                 do {
                     let messageHistory = previousMessages.map { message -> Ollama.Chat.Message in
                         if message.isUser {
@@ -22,10 +20,6 @@ class LLM {
                         }
                     }
                     
-                    for message in messageHistory {
-                        print("\(message.role): \(message.content)\n")
-                    }
-                    print("\n\nEND OF HISTORY\n\n")
                     let stream = try client.chatStream(
                         model: "llama3.2",
                         messages: messageHistory,
@@ -33,6 +27,7 @@ class LLM {
                     )
                     
                     for try await chunk in stream {
+                        try Task.checkCancellation()
                         continuation.yield(chunk.message.content)
                     }
                     continuation.finish()
@@ -40,6 +35,12 @@ class LLM {
                     continuation.finish(throwing: error)
                 }
             }
+            continuation.onTermination = { termination in
+                if case .cancelled = termination {
+                    task.cancel()
+                }
+            }
+
         }
     }
 }

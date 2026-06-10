@@ -5,11 +5,11 @@ struct MainWindow: View {
     @State private var prompt: String = ""
     @State private var chatWindowEmpty: Bool = true
     @State private var isSendButtonHovered: Bool = false
-    @State private var isSendButtonDisabled: Bool = true
     @State private var isAResponseGenerating: Bool = false
+    @State private var generationTask: Task<Void, Never>? = nil
+    
     @ObservedObject private var settings = Settings.shared
     
-    // @State private var messageList: [Message] = []
     @Environment(\.modelContext) private var context
     @State private var activeChat: Chat? = nil
     @State private var streamingChunks: [String] = []
@@ -32,7 +32,7 @@ struct MainWindow: View {
                         ) { message in
                             if message.isUser {
                                 UserMessageView(message.response)
-                                    .transition(.opacity.combined(with: .scale))
+                                    .transition(.opacity)
                             } else {
                                 llmMessageView(message.response)
                             }
@@ -69,9 +69,6 @@ struct MainWindow: View {
                 GlassEffectContainer {
                     userInputArea()
                 }
-                .onChange(of: prompt) {
-                    isSendButtonDisabled = prompt.isEmpty || isAResponseGenerating
-                }
                 .padding(.bottom, 12)
                 .animation(.spring(duration: animationDelay + 0.25), value: prompt.isEmpty)
             }
@@ -89,20 +86,33 @@ struct MainWindow: View {
         .overlay(alignment: .leading) {
             Sidebar(
                 onNewChat: {
-                    activeChat = nil
+                    generationTask?.cancel()
+                    generationTask = nil
+                    isAResponseGenerating = false
+                    withAnimation(.spring(duration: animationDelay)){
+                        activeChat = nil
+                    }
                     streamingChunks = []
                     chatWindowEmpty = true
                 },
                 onSelectChat: { chat in
-                    activeChat = chat
+                    generationTask?.cancel()
+                    generationTask = nil
+                    isAResponseGenerating = false
                     streamingChunks = []
-                    chatWindowEmpty = chat.messages.isEmpty
+                    withAnimation(.spring(duration: animationDelay)) {
+                        activeChat = chat
+                        chatWindowEmpty = chat.messages.isEmpty
+                    }
                 },
                 onDeleteChat: { chat in
                     if chat == activeChat {
-                        activeChat = nil
+                        generationTask?.cancel()
+                        generationTask = nil
+                        isAResponseGenerating = false
                         streamingChunks = []
-                        withAnimation {
+                        withAnimation(.spring(duration: animationDelay*2)) {
+                            activeChat = nil
                             chatWindowEmpty = true
                         }
                     }
@@ -114,14 +124,22 @@ struct MainWindow: View {
     }
     
     func handlePromptSending() async {
-        isAResponseGenerating = true
-        
         let currentPrompt = prompt
         
         if activeChat == nil {
             let chat = Chat(title: currentPrompt)
             context.insert(chat)
             activeChat = chat
+        }
+        
+        let chatAtStart = activeChat
+        isAResponseGenerating = true
+        
+        defer {
+            if activeChat == chatAtStart {
+                isAResponseGenerating = false
+                generationTask = nil
+            }
         }
         
         prompt.removeAll()
@@ -139,6 +157,10 @@ struct MainWindow: View {
             let stream = llm.generateStream(activeChat?.messages ?? [])
             
             for try await chunk in stream {
+                guard !Task.isCancelled else { break }
+                guard activeChat == chatAtStart else { break }
+                guard !streamingChunks.isEmpty else { break }
+                
                 streamingChunks[streamingChunks.count - 1] += chunk
                 // If the current chunk has grown too large, start a new one
                 if streamingChunks.last!.count >= chunkCharLimit {
@@ -146,18 +168,29 @@ struct MainWindow: View {
                 }
             }
         } catch {
-            streamingChunks[streamingChunks.count - 1] = "LLM failed to respond."
+            if Task.isCancelled {
+                // User cancelled. Keep partial response.
+            } else {
+                guard !streamingChunks.isEmpty else { return }
+                streamingChunks[streamingChunks.count - 1] = "LLM failed to respond."
+            }
+        }
+        
+        // Only save the response if the chat has not changed
+        guard activeChat == chatAtStart else {
+            return
         }
         
         // Collapse all chunks into a single completed Message
         let fullResponse = streamingChunks.joined()
-        withAnimation(.spring(duration: animationDelay)) {
-            let llmMessage = Message(isUser: false, response: fullResponse)
-            context.insert(llmMessage)
-            activeChat?.messages.append(llmMessage)
+        if !fullResponse.isEmpty {
+            withAnimation(.spring(duration: animationDelay)) {
+                let llmMessage = Message(isUser: false, response: fullResponse)
+                context.insert(llmMessage)
+                activeChat?.messages.append(llmMessage)
+            }
         }
         streamingChunks = []
-        isAResponseGenerating = false
     }
     
     @ViewBuilder
@@ -213,28 +246,33 @@ struct MainWindow: View {
                         return .ignored
                     }
                     guard !prompt.isEmpty else { return .handled }
-                    Task { @MainActor in
+                    generationTask = Task { @MainActor in
                         await handlePromptSending()
                     }
                     return .handled
                 }
             Button {
-                Task { @MainActor in
-                    await handlePromptSending()
+                if isAResponseGenerating {
+                    generationTask?.cancel()
+                    isAResponseGenerating = false
+                }else {
+                    generationTask = Task { @MainActor in
+                        await handlePromptSending()
+                    }
                 }
             } label: {
-                Image(systemName: "arrow.up")
+                Image(systemName: isAResponseGenerating ? "stop.fill" : "arrow.up")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .contentShape(Rectangle())
             }
-            .disabled(isSendButtonDisabled)
+            .disabled(prompt.isEmpty && !isAResponseGenerating)
             .buttonStyle(.glass)
             .frame(
                 width: isSendButtonHovered ? 48 * scaleFactor : 48,
                 height: isSendButtonHovered ? 45 * scaleFactor : 45
             )
             .onHover { hover in
-                isSendButtonHovered = hover && !isSendButtonDisabled
+                isSendButtonHovered = hover && !prompt.isEmpty
             }
             .animation(.spring(duration: animationDelay), value: isSendButtonHovered)
         }

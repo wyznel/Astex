@@ -61,7 +61,7 @@ struct Sidebar: View {
             
             // New Chat
             Button {
-                withAnimation(.spring(duration: 0.5)) {
+                withAnimation(.spring(duration: Sidebar.animationDelay*2)) {
                     onNewChat()
                 }
             } label: {
@@ -122,8 +122,11 @@ struct Sidebar: View {
                                 return .ignored
                             }
                             guard !newChatTitleName.isEmpty else {return .handled}
-                            
                             chat.title = newChatTitleName
+                            editingChatID = nil
+                            return .handled
+                        }
+                        .onKeyPress(keys: [.escape], phases: .down) { keyPress in
                             editingChatID = nil
                             return .handled
                         }
