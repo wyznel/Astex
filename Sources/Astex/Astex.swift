@@ -14,9 +14,13 @@ struct Astex: App {
     }
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainWindow()
+                .preferredColorScheme(Settings.shared.colorScheme)
+                .frame(minWidth: 1000, minHeight: 512)
         }
         .modelContainer(for: [Chat.self, Message.self])
+        .windowStyle(.hiddenTitleBar)
+        .windowBackgroundDragBehavior(.enabled)
     
     }
 }

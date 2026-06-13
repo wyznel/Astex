@@ -36,6 +36,7 @@ struct Sidebar: View {
             // Pin / unpin toggle
             Button {
                 settings.holdSideBarMenuOpen.toggle()
+                isHovered = true
                 if !settings.holdSideBarMenuOpen {
                     withAnimation(.spring(duration: Sidebar.animationDelay)) {
                         isHovered = false
