@@ -1,0 +1,55 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# Swift Package Manager
+.build/
+.swiftpm/
+*.resolved
+
+# Xcode Previews
+PreviewsXPC/
+
+# CocoaPods (if ever used)
+Pods/
+Podfile.lock
+
+# Carthage (if ever used)
+Carthage/Build/
+
+# Fastlane (if ever used)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Environment / secrets
+*.env
+.env
+*.pem
+*.p12
+*.cer
+*.key
+*.mobileprovision
+
+# Crash logs
+*.crash
+
+# Editor
+.idea/
+*.swp
+*.swo
