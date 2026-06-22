@@ -30,43 +30,41 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            List {
-                ChatActionHandling(
-                 onNewChat: {
-                     generationTask?.cancel()
-                     generationTask = nil
-                     isAResponseGenerating = false
-                     withAnimation(.spring(duration: settings.animationDelay)){
-                         activeChat = nil
-                     }
-                     streamingChunks = []
-                     chatWindowEmpty = true
-                 },
-                 onSelectChat: { chat in
-                     generationTask?.cancel()
-                     generationTask = nil
-                     isAResponseGenerating = false
-                     streamingChunks = []
-                     withAnimation(.spring(duration: settings.animationDelay)) {
-                         activeChat = chat
-                         chatWindowEmpty = chat.messages.isEmpty
-                     }
-                 },
-                 onDeleteChat: { chat in
-                     if chat == activeChat {
-                         generationTask?.cancel()
-                         generationTask = nil
-                         isAResponseGenerating = false
-                         streamingChunks = []
-                         withAnimation(.spring(duration: settings.animationDelay*2)) {
-                             activeChat = nil
-                             chatWindowEmpty = true
-                         }
-                     }
-                     modelContext.delete(chat)
+            ChatActionHandling(
+             onNewChat: {
+                 generationTask?.cancel()
+                 generationTask = nil
+                 isAResponseGenerating = false
+                 withAnimation(.spring(duration: settings.animationDelay)){
+                     activeChat = nil
                  }
-                )
-            }
+                 streamingChunks = []
+                 chatWindowEmpty = true
+             },
+             onSelectChat: { chat in
+                 generationTask?.cancel()
+                 generationTask = nil
+                 isAResponseGenerating = false
+                 streamingChunks = []
+                 withAnimation(.spring(duration: settings.animationDelay)) {
+                     activeChat = chat
+                     chatWindowEmpty = false
+                 }
+             },
+             onDeleteChat: { chat in
+                 if chat == activeChat {
+                     generationTask?.cancel()
+                     generationTask = nil
+                     isAResponseGenerating = false
+                     streamingChunks = []
+                     withAnimation(.spring(duration: settings.animationDelay*2)) {
+                         activeChat = nil
+                         chatWindowEmpty = true
+                     }
+                 }
+                 modelContext.delete(chat)
+             }
+            )
             .frame(minWidth: 180, maxWidth: 320)
             .navigationSplitViewColumnWidth(min: 180, ideal: 240, max: 320)
             .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
@@ -322,6 +320,7 @@ struct ContentView: View {
                 .padding(.vertical, 10)
                 .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 6))
                 .frame(maxWidth: 550, alignment: isUserMessage ? .trailing : .leading)
+                .textual.textSelection(.enabled)
             if !isUserMessage { Spacer() }
         }
     }

@@ -44,7 +44,11 @@ struct ChatActionHandling: View {
             }
             Divider()
             
-//            SavedChats()
+            ScrollView {
+                VStack(spacing: 8) {
+                    SavedChats()
+                }
+            }
             
             Spacer()
             Button {
@@ -115,8 +119,9 @@ struct ChatActionHandling: View {
                             InlineText(markdown: chat.title)
                                 .lineLimit(1)
                                 .truncationMode(.tail)
+                                .allowsHitTesting(false)
                             Spacer()
-                        }
+                        }.contentShape(Rectangle())
                     }
                     .contextMenu(menuItems: {
                         Button("Delete", systemImage: "delete.backward") {
@@ -131,6 +136,7 @@ struct ChatActionHandling: View {
                 }
             }
         }
+        .animation(.spring(duration: Settings.shared.animationDelay), value: chats)
     }
     
     struct ChatRowButtonStyle: ButtonStyle {
