@@ -22,4 +22,4 @@ Astex is a native macOS app designed to provide a modern chat interface for inte
 
 ### Roadmap
 
-See [roadmap.md](https://github.com/wyznel/Astex/roadmap.md)
+See [roadmap.md](https://github.com/wyznel/Astex/blob/main/ROADMAP.md)
