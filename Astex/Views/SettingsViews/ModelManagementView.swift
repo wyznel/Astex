@@ -10,66 +10,94 @@ import Ollama
 import Textual
 
 
+// MARK: - ModelManagementView
 
 struct ModelManagementView: View {
-    
+
+    // MARK: Column Descriptor
+
+    /// Single source of truth for which data columns are visible and their header labels.
+    struct ColumnDescriptor: Identifiable {
+        let id: String
+        let header: String
+        let keyPath: KeyPath<ModelRowData, String>
+        let isVisible: (Settings) -> Bool
+    }
+
+    static let allColumns: [ColumnDescriptor] = [
+        ColumnDescriptor(
+            id: "sizeOnDisk",
+            header: "Size on disk",
+            keyPath: \.sizeOnDisk,
+            isVisible: { $0.showSizeOnDisk }
+        ),
+        ColumnDescriptor(
+            id: "format",
+            header: "FORMAT",
+            keyPath: \.format,
+            isVisible: { $0.showFormat }
+        ),
+        ColumnDescriptor(
+            id: "parameterSize",
+            header: "Parameter Size",
+            keyPath: \.parameterSize,
+            isVisible: { $0.showParameterSize }
+        ),
+    ]
+
+    // MARK: Properties
+
     static var utilities = Utilities()
-    
+
     @ObservedObject private var settings = Settings.shared
-    
+
     @State private var models: [String] = []
-    
-    @State private var isSelected: Bool = false
-    
+
     @State private var selectedModel: String? = Settings.shared.selectedModel
-    
-    @State private var size: String = "Loading..."
-    
+
+    /// Visible columns derived from current settings.
+    private var visibleColumns: [ColumnDescriptor] {
+        Self.allColumns.filter { $0.isVisible(settings) }
+    }
+
+    // MARK: Body
+
     var body: some View {
         VStack {
             InlineText(markdown: "**Models**")
                 .padding(6)
 ///          Model List
-            VStack(alignment: .leading){
-                HStack {
-                    Text("Model Name")
-                        .frame(width: 150, alignment: .leading)
-                    if !settings.showFormat || !settings.showParameterSize || !settings.showSizeOnDisk {
-                        Spacer()
+            VStack(alignment: .leading) {
+                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 0) {
+                    // Header row
+                    GridRow {
+                        Text("Model Name")
+                            .gridColumnAlignment(.leading)
+
+                        ForEach(visibleColumns) { column in
+                            Text(column.header)
+                                .gridColumnAlignment(.leading)
+                        }
+
+                        // Invisible trash icon to reserve the action column width
+                        Image(systemName: "trash")
+                            .opacity(0)
                     }
-                    if settings.showSizeOnDisk {
-                        Text("Size on disk")
-                            .frame(width: 100, alignment: .leading)
-                        Spacer()
-                    }
-                    if settings.showFormat {
-                        Text("FORMAT")
-                            .frame(width: 100, alignment: .leading)
-                        Spacer()
-                    }
-                    if settings.showParameterSize {
-                        Text("Parameter Size")
-                            .frame(width: 100, alignment: .leading)
-                    }
-                    Spacer()
-                    
-                    Image(systemName: "trash")
-                        .opacity(0)
-                        .accessibilityHidden(true)
-                    if !settings.showParameterSize {
-                        Spacer()
+                    .padding(.vertical, 4)
+
+                    Divider()
+
+                    // Data rows
+                    ForEach(models, id: \.self) { model in
+                        ModelDetailsRow(
+                            model: model,
+                            selectedModel: $selectedModel,
+                            visibleColumns: visibleColumns
+                        )
+                        Divider()
                     }
                 }
                 .padding(.leading, 12)
-                Divider()
-                ForEach(models, id: \.self) { model in
-                    ModelDetailsRow(
-                        model: model,
-                        selectedModel: $selectedModel
-                    )
-                    .padding(.top, 2)
-                    Divider()
-                }
             }
             .padding(.top, 15)
             .padding(.bottom, 15)
@@ -81,7 +109,7 @@ struct ModelManagementView: View {
                 Settings.shared.selectedModel = selectedModel ?? ""
                 print("Selected Model: \(Settings.shared.selectedModel)")
             }
-            
+
             Button {
                 settings.suppressModelDeletionConfirmation.toggle()
             } label: {
@@ -98,7 +126,7 @@ struct ModelManagementView: View {
                     settings.showSizeOnDisk.toggle()
                 }
             }
-            
+
             Button("Format", systemImage: settings.showFormat ? "checkmark" : "square") {
                 withAnimation(.spring(duration: settings.animationDelay)){
                     settings.showFormat.toggle()
@@ -111,151 +139,123 @@ struct ModelManagementView: View {
             }
         })
     }
-    
-///  Combines ModelToggle and ModelInfo.
+
+
+    // MARK: - ModelDetailsRow
+
+///  Combines ModelToggle and model info columns in a single GridRow.
     struct ModelDetailsRow: View {
         let model: String
-        
+
         @Binding var selectedModel: String?
-        
+
+        let visibleColumns: [ColumnDescriptor]
+
+        @State private var rowData: ModelRowData
+
+        init(model: String, selectedModel: Binding<String?>, visibleColumns: [ColumnDescriptor]) {
+            self.model = model
+            self._selectedModel = selectedModel
+            self.visibleColumns = visibleColumns
+            self._rowData = State(initialValue: ModelRowData(modelName: model))
+        }
+
         var body: some View {
-            HStack{
+            GridRow {
                 ModelToggle(
                     modelName: model,
                     selectedModel: $selectedModel
                 )
-                .frame(width: 150, alignment: .leading)
-                
-                Spacer()
-                
-                modelInfo(
-                    modelName: model,
-                    selectedModel: $selectedModel
-                )
+
+                if rowData.isLoading {
+                    // Span all data columns + the action column with a single progress indicator
+                    ProgressView()
+                        .gridCellColumns(visibleColumns.count + 1)
+                } else {
+                    ForEach(visibleColumns) { column in
+                        Text(rowData[keyPath: column.keyPath])
+                    }
+
+                    ModelDeleteButton(
+                        modelName: model,
+                        isDisabled: selectedModel == model
+                    )
+                }
             }
-            .padding(.leading, 12)
-            .background(Color.sepiaAccent.opacity(selectedModel == model ? 0.1 : 0.0), in: RoundedRectangle(cornerRadius: 6))
-            
+            .padding(.vertical, 2)
+            .background(
+                Color.sepiaAccent.opacity(selectedModel == model ? 0.1 : 0.0),
+                in: RoundedRectangle(cornerRadius: 6)
+            )
+            .task {
+                await rowData.loadInfo()
+            }
         }
     }
-/// Model Info Columns, linked with ModelToggle.
-    struct modelInfo: View {
+
+
+    // MARK: - ModelDeleteButton
+
+/// Delete model button, extracted for clarity.
+    struct ModelDeleteButton: View {
         let modelName: String
-        
-        @Binding var selectedModel: String?
-        
+        let isDisabled: Bool
+
         @ObservedObject private var settings = Settings.shared
-        
-        @State private var SIZE: String = ""
-        @State private var FORMAT: String = ""
-        @State private var PARAMETER_SIZE: String = ""
-        
-        @State private var isLoading: Bool = true
+
         @State private var isPresentingConfirm: Bool = false
-        
+
         var body: some View {
-            if isLoading {
-                ProgressView()
-                    .frame(width: 100, alignment: .leading)
-                    .task {
-                        let info = await ModelManagementView.utilities.getModelInfo(model: modelName)
-                        let size_unrounded_gb = (info["size"] as! Double) / 1000000000
-                        let size = Double(round(100 * size_unrounded_gb) / 100)
-                        
-                        let format = info["format"] as! String
-                        let parameter_size = info["parameter_size"] as? String ?? "0"
-                        
-                        DispatchQueue.main.async {
-                            self.SIZE = "\(size) GB"
-                            self.FORMAT = format
-                            self.PARAMETER_SIZE = parameter_size
-                            self.isLoading = false
-                        }
-                    }
-                Spacer()
-                Text("")
-                    .frame(width: 100, alignment: .leading)
-                
+            Button {
+                if !settings.suppressModelDeletionConfirmation {
+                    isPresentingConfirm = true
+                } else {
+                    print("Deleted model: \(modelName)")
+                }
+            } label: {
+                Image(systemName: "trash")
             }
-            else {
-                if settings.showSizeOnDisk {
-                    Text(SIZE)
-                        .frame(width: 100, alignment: .leading)
-                    Spacer()
+            .disabled(isDisabled)
+            .confirmationDialog("Are you sure?", isPresented: $isPresentingConfirm) {
+                Button("Delete model: \(modelName)", role: .destructive) {
+                    print("Confirmation of deletion of model: \(modelName)")
+                    isPresentingConfirm = false
                 }
-                if settings.showFormat {
-                    Text(FORMAT)
-                        .frame(width: 100, alignment: .leading)
-                    Spacer()
-                }
-                if settings.showParameterSize {
-                    Text(PARAMETER_SIZE)
-                        .frame(width: 100, alignment: .leading)
-                    Spacer()
-                }
-                
-///             Delete model button.
-                Button {
-                    if !settings.suppressModelDeletionConfirmation {
-                        isPresentingConfirm = true
-                    }else {
-                        print("Deleted model: \(modelName)")
-                    }
-                } label: {
-                    Image(systemName: "trash")
-                }
-                .disabled(selectedModel == modelName)
-                .confirmationDialog("Are you sure?", isPresented: $isPresentingConfirm) {
-                    Button ("Delete model: \(modelName)", role: .destructive) {
-                        print("Confirmation of deletion of model: \(modelName)")
-                        isPresentingConfirm = false
-                    }
-                }
-                .dialogIcon(Image(systemName: "trash.circle.fill"))
-                .dialogSuppressionToggle(isSuppressed: settings.$suppressModelDeletionConfirmation)
             }
+            .dialogIcon(Image(systemName: "trash.circle.fill"))
+            .dialogSuppressionToggle(isSuppressed: settings.$suppressModelDeletionConfirmation)
         }
     }
-    
-/// each model must have its own toggle (bars)
+
+
+    // MARK: - ModelToggle
+
+/// Each model must have its own toggle (bars).
     struct ModelToggle: View {
         let modelName: String
-        
-        @State var isSelected: Bool = false
-        
+
         @Binding var selectedModel: String?
-        
+
+        /// Derived -- no separate @State needed.
+        private var isSelected: Bool {
+            selectedModel == modelName
+        }
+
         var body: some View {
             Toggle(
                 modelName,
                 isOn: Binding(
-                    get: { selectedModel == modelName},
+                    get: { selectedModel == modelName },
                     set: { isOn in
                         if isOn {
                             selectedModel = modelName
-                            isSelected = true
-                        }else if selectedModel == modelName {
+                        } else if selectedModel == modelName {
                             selectedModel = nil
                         }
                     }
                 )
             )
-            .onChange(of: selectedModel){
-                if selectedModel == modelName {
-                    DispatchQueue.main.async {
-                        isSelected = true
-                    }
-                }else{
-                    isSelected = false
-                }
-            }
-            .task{
-                if selectedModel == modelName {
-                    isSelected = true
-                }
-            }
             .disabled(isSelected)
-            .frame(width: 150, alignment: .leading)
         }
     }
 }

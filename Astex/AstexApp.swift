@@ -27,7 +27,6 @@ struct AstexApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .preferredColorScheme(Settings.shared.colorScheme)
                 .frame(minWidth: 1000, minHeight: 512)
                 .toolbar(removing: .title)
                 .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)

@@ -6,7 +6,7 @@ class Settings: ObservableObject {
     static let shared = Settings()
     
     @Published var glassEffect: Glass = .regular
-    @Published var colorScheme: ColorScheme = .light
+    @Environment(\.colorScheme) var colorScheme: ColorScheme
     @Published var animationDelay: Double = 0.25
     @Published var settingsOpened: Bool = false
     
