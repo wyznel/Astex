@@ -19,7 +19,31 @@ class LLM {
     
     func generateTitle(_ previousMessages: [Message]) async -> String {
         do {
-            let messageHistory = previousMessages.map { message -> Ollama.Chat.Message in
+            let promptForTitleGen = Message(isUser: true, response:
+                """
+                Generate a short chat title based on the conversation.
+                
+                Rules:
+                - Output only the title
+                - Do not include any label such as Title or Chat Title
+                - Use only letters numbers and spaces
+                - No punctuation
+                - Maximum 50 characters
+                
+                Invalid output examples:
+                Chat Title: DNS Help
+                "DNS Help"
+                DNS Help!
+                
+                Example Valid output exampls:
+                DNS Help
+                Project Astex Debugging
+                """)
+            
+            var something = previousMessages
+            something.append(promptForTitleGen)
+            
+            let messageHistory = something.map { message -> Ollama.Chat.Message in
                 if message.isUser {
                     return .user(message.response)
                 } else {
@@ -27,9 +51,8 @@ class LLM {
                 }
             }
             let response = try await client.chat(
-                model: "llama3.2",
-                messages: messageHistory,
-                keepAlive: .minutes(-1)
+                model: "\(Settings.shared.selectedModel)",
+                messages: messageHistory
             )
             return response.message.content
         } catch {
@@ -52,7 +75,7 @@ class LLM {
                     }
                     
                     let stream = try client.chatStream(
-                        model: "llama3.2",
+                        model: "\(Settings.shared.selectedModel)",
                         messages: messageHistory,
                         keepAlive: .minutes(5)
                     )

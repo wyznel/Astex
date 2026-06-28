@@ -14,6 +14,7 @@ struct ChatActionHandling: View {
     var onDeleteChat: (Chat) -> Void
     var onSelectChat: (Chat) -> Void
     var onNewChat: () -> Void
+    var getNewTitle: (Chat) -> Void
     
     @Query(sort: \Chat.createdAt, order: .reverse) private var chats: [Chat]
     
@@ -21,27 +22,27 @@ struct ChatActionHandling: View {
     @FocusState private var editTitleFocused: Bool
     
     init (
-        onNewChat: @escaping () -> Void, onSelectChat: @escaping (Chat) -> Void, onDeleteChat: @escaping (Chat) -> Void
+        onNewChat: @escaping () -> Void,
+        onSelectChat: @escaping (Chat) -> Void,
+        onDeleteChat: @escaping (Chat) -> Void,
+        getNewTitle: @escaping (Chat) -> Void
     ) {
         self.onNewChat = onNewChat
         self.onSelectChat = onSelectChat
         self.onDeleteChat = onDeleteChat
+        self.getNewTitle = getNewTitle
     }
     
     
     var body: some View {
         VStack {
-            Button {
-                withAnimation(.spring(duration: settings.animationDelay*2)){
+            
+            DefaultButton(text: "New Chat", imageShape: "square.and.pencil") {
+                withAnimation(.spring(duration: settings.animationDelay*2)) {
                     onNewChat()
                 }
-            } label: {
-                HStack {
-                    Image(systemName: "square.and.pencil")
-                    Text("New Chat")
-                    Spacer()
-                }
             }
+    
             Divider()
             
             ScrollView {
@@ -51,13 +52,10 @@ struct ChatActionHandling: View {
             }
             
             Spacer()
-            Button {
-                print("Opened Settings Menu")
-            } label: {
-                HStack {
-                    Image(systemName: "gearshape")
-                    Text("Settings")
-                    Spacer()
+    
+            DefaultButton(text: "Settings", imageShape: "gearshape"){
+                withAnimation(.spring(duration: settings.animationDelay)){
+                    settings.settingsOpened.toggle()
                 }
             }
         }
@@ -131,6 +129,9 @@ struct ChatActionHandling: View {
                             newChatTitleName = chat.title
                             editingChatTitleID = chat.id
                         }
+                        Button("Generate Title", systemImage: ""){
+                            getNewTitle(chat)
+                        }
                     })
                     .buttonStyle(ChatRowButtonStyle())
                 }
@@ -152,6 +153,40 @@ struct ChatActionHandling: View {
                 .onHover { isHovered = $0 }
                 .animation(.spring(duration: Settings.shared.animationDelay), value: isHovered)
             
+        }
+    }
+    
+    @State private var hovered: Bool = false
+    
+    struct DefaultButton: View {
+        let text: String
+        let imageShape: String
+        let action: () -> Void
+        
+        @State private var hovered: Bool = false
+        
+        var body: some View {
+            Button {
+                action()
+            } label: {
+                HStack {
+                    Image(systemName: imageShape)
+                        .padding(6)
+                    Text(text)
+                    Spacer()
+                }
+                .contentShape(Capsule())
+                .frame(height: 30)
+            }
+            .glassEffect(hovered
+                         ? .regular.tint(Color.sepiaAccent.opacity(0.3))
+                         : .regular.tint(Color.sepiaAccent.opacity(0.125)))
+            .animation(.spring(duration: Settings.shared.animationDelay), value: hovered)
+            .clipShape(Capsule())
+            .buttonStyle(.plain)
+            .onHover { isHovered in
+                hovered = isHovered
+            }
         }
     }
     

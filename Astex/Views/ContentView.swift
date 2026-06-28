@@ -27,7 +27,7 @@ struct ContentView: View {
     private var scaleFactor: Double = 1.2
     
     private let llm = LLM()
-
+    
     var body: some View {
         NavigationSplitView {
             ChatActionHandling(
@@ -36,12 +36,14 @@ struct ContentView: View {
                  generationTask = nil
                  isAResponseGenerating = false
                  withAnimation(.spring(duration: settings.animationDelay)){
+                     settings.settingsOpened = false
                      activeChat = nil
                  }
                  streamingChunks = []
                  chatWindowEmpty = true
              },
              onSelectChat: { chat in
+                 settings.settingsOpened = false
                  generationTask?.cancel()
                  generationTask = nil
                  isAResponseGenerating = false
@@ -63,13 +65,24 @@ struct ContentView: View {
                      }
                  }
                  modelContext.delete(chat)
-             }
+             },
+             getNewTitle: { chat in
+                 Task {
+                     let newTitle = await llm.generateTitle(chat.messages)
+                     chat.title = newTitle
+                     chat.titleHasBeenGenerated = true
+                 }
+            }
             )
             .frame(minWidth: 180, maxWidth: 320)
             .navigationSplitViewColumnWidth(min: 180, ideal: 240, max: 320)
             .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
         } detail: {
-            mainBody()
+            if(!settings.settingsOpened) {
+                mainBody()
+            }else{
+                SettingsView()
+            }
         }
         .navigationSplitViewStyle(.balanced)
     }
@@ -121,7 +134,7 @@ struct ContentView: View {
                 Text("Astex")
                     .font(.system(size: 32, weight: .bold, design: .monospaced))
                     .opacity(chatWindowEmpty ? 1 : 0)
-                    .foregroundStyle(.ultraThickMaterial)
+                    .foregroundStyle(Color.sepiaText)
                     .animation(.spring(duration: settings.animationDelay * 2), value: prompt.isEmpty)
                 GlassEffectContainer {
                     userInputArea()
@@ -135,9 +148,7 @@ struct ContentView: View {
             .animation(.spring(duration: settings.animationDelay), value: isSendButtonHovered)
             if chatWindowEmpty { Spacer() }
         }
-        .background(
-            LinearGradient(colors: [.indigo, .mint], startPoint: .topLeading, endPoint: .bottom)
-        )
+        .background(Color.sepiaBackground)
     }
 
     func handlePromptSending() async {
@@ -219,31 +230,7 @@ struct ContentView: View {
         
         //Generate a title for a chat after a few messages have been sent/recieved.
         if activeChat?.messages.count ?? 0 > 2 && !activeChat!.titleHasBeenGenerated {
-            let promptForTitleGen = Message(isUser: true, response:
-                """
-                Generate a short chat title based on the conversation.
-                
-                Rules:
-                - Output only the title
-                - Do not include any label such as Title or Chat Title
-                - Use only letters numbers and spaces
-                - No punctuation
-                - Maximum 50 characters
-                
-                Invalid outputs:
-                Chat Title: DNS Help
-                "DNS Help"
-                DNS Help!
-                
-                Valid output:
-                DNS Help
-                Project Astex Debugging
-                """)
-            
-            var something = activeChat?.messages ?? []
-            something.append(promptForTitleGen)
-            
-            let newTitle = await llm.generateTitle(something)
+            let newTitle = await llm.generateTitle(activeChat?.messages ?? [])
             print("Generated Title: \(newTitle)")
             activeChat?.title = newTitle
         }
@@ -325,4 +312,8 @@ struct ContentView: View {
         }
     }
     
+}
+
+#Preview {
+    ContentView()
 }

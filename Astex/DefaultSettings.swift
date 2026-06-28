@@ -8,6 +8,13 @@ class Settings: ObservableObject {
     @Published var glassEffect: Glass = .regular
     @Published var colorScheme: ColorScheme = .light
     @Published var animationDelay: Double = 0.25
+    @Published var settingsOpened: Bool = false
     
+    @AppStorage("SuppressModelDeletionConfirmaton") var suppressModelDeletionConfirmation: Bool = false
+    @AppStorage("ModelInformationShowSizeOnDisk") var showSizeOnDisk: Bool = true
+    @AppStorage("ModelInformationShowFormat") var showFormat: Bool = true
+    @AppStorage("ModelInformationShowParameterSize") var showParameterSize: Bool = true
+    
+    @AppStorage("SelectedModel") var selectedModel: String = "llama3.2:3b"
     private init() {}
 }
