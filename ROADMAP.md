@@ -9,7 +9,7 @@
     - [X] Delete models
     - [X] Unload models from memory.
     - [ ] Pull models.
--[ ] Update chat interface.
+- [ ] Update chat interface.
     - [ ] Allow uploads of files.
     - [ ] Fix chat scroll resetting to top when sending a chat.
 - [ ] Add more customisation.
