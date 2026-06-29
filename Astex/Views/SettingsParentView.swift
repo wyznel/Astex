@@ -17,25 +17,31 @@ struct SettingsView: View {
         VStack {
             HStack(spacing: 20) {
                 TabButton(icon: "arrowshape.turn.up.backward", opacity: 0.125) {
-                    withAnimation(.spring(duration: settings.animationDelay)) {
+                    withAnimation(.spring(duration: settings.animationDelay * 2)) {
                         settings.settingsOpened = false
                     }
                 }
                 HStack(spacing: 0) {
                     TabButton(icon: "gear", opacity: 0.0625, shape: Rectangle())
                     {
-                        selectedTab = 1
+                        withAnimation(.spring(duration: settings.animationDelay * 2)){
+                            selectedTab = 1
+                        }
                     }
                     TabButton(icon: "plus", opacity: 0.0625, shape: Rectangle())
                     {
-                        selectedTab = 2
+                        withAnimation(.spring(duration: settings.animationDelay * 2)){
+                            selectedTab = 2
+                        }
                     }
                     TabButton(
                         icon: "pencil",
                         opacity: 0.0625,
                         shape: Rectangle()
                     ) {
-                        selectedTab = 3
+                        withAnimation(.spring(duration: settings.animationDelay * 2)){
+                            selectedTab = 3
+                        }
                     }
                 }
                 .glassEffect(.regular.tint(Color.sepiaAccent.opacity(0.0625)))
@@ -45,14 +51,14 @@ struct SettingsView: View {
 
             Divider()
             switch selectedTab {
-            case 1:
-                ModelManagementView()
-            case 2:
-                Text("Settings")
-            case 3:
-                appearance()
-            default:
-                Text("Invalid")
+                case 1:
+                    ModelManagementView()
+                case 2:
+                    Text("Settings")
+                case 3:
+                    appearance()
+                default:
+                    Text("Invalid")
             }
             Spacer()
         }

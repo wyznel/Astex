@@ -13,9 +13,8 @@ import Textual
 // MARK: - ModelManagementView
 
 struct ModelManagementView: View {
-
     // MARK: Column Descriptor
-
+    
     /// Single source of truth for which data columns are visible and their header labels.
     struct ColumnDescriptor: Identifiable {
         let id: String
@@ -46,7 +45,9 @@ struct ModelManagementView: View {
     ]
 
     // MARK: Properties
-
+    
+    static var client = Client.default
+    
     static var utilities = Utilities()
 
     @ObservedObject private var settings = Settings.shared
@@ -54,18 +55,41 @@ struct ModelManagementView: View {
     @State private var models: [String] = []
 
     @State private var selectedModel: String? = Settings.shared.selectedModel
-
+    
+    @State private var hasModelTableAppeared: Bool = false
     /// Visible columns derived from current settings.
     private var visibleColumns: [ColumnDescriptor] {
         Self.allColumns.filter { $0.isVisible(settings) }
     }
 
     // MARK: Body
-
+    @State private var successfullyUnloadedModels: Bool = false
+    
     var body: some View {
         VStack {
-            InlineText(markdown: "**Models**")
-                .padding(6)
+            HStack {
+                InlineText(markdown: "**Models**")
+                    .padding(6)
+                    .frame(alignment: .leading)
+                Spacer()
+                Button {
+                    Task {
+                        if await ModelManagementView.utilities.tryUnloadAllModels() {
+                            successfullyUnloadedModels = true
+                            
+                            try? await Task.sleep(for: .seconds(5))
+                            successfullyUnloadedModels = false
+                            
+                        } else {
+                            successfullyUnloadedModels = false
+                        }
+                    }
+                } label: {
+                    Label(successfullyUnloadedModels ? "All Models Unloaded" : "Unload all models", systemImage: successfullyUnloadedModels ? "checkmark" : "stop.circle")
+                }
+                .disabled(successfullyUnloadedModels)
+            }
+            .frame(maxWidth: 600)
 ///          Model List
             VStack(alignment: .leading) {
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 0) {
@@ -92,7 +116,12 @@ struct ModelManagementView: View {
                         ModelDetailsRow(
                             model: model,
                             selectedModel: $selectedModel,
-                            visibleColumns: visibleColumns
+                            visibleColumns: visibleColumns,
+                            onDelete: {
+                                withAnimation {
+                                    models.removeAll { $0 == model }
+                                }
+                            }
                         )
                         Divider()
                     }
@@ -108,12 +137,6 @@ struct ModelManagementView: View {
             .onChange(of: selectedModel) {
                 Settings.shared.selectedModel = selectedModel ?? ""
                 print("Selected Model: \(Settings.shared.selectedModel)")
-            }
-
-            Button {
-                settings.suppressModelDeletionConfirmation.toggle()
-            } label: {
-                Image(systemName: settings.suppressModelDeletionConfirmation ? "checkmark.square" : "cross")
             }
         }
         .task {
@@ -146,17 +169,20 @@ struct ModelManagementView: View {
 ///  Combines ModelToggle and model info columns in a single GridRow.
     struct ModelDetailsRow: View {
         let model: String
-
+        
+        var onDelete: (() -> Void)?
+        
         @Binding var selectedModel: String?
 
         let visibleColumns: [ColumnDescriptor]
 
         @State private var rowData: ModelRowData
 
-        init(model: String, selectedModel: Binding<String?>, visibleColumns: [ColumnDescriptor]) {
+        init(model: String, selectedModel: Binding<String?>, visibleColumns: [ColumnDescriptor], onDelete: @escaping () -> Void) {
             self.model = model
             self._selectedModel = selectedModel
             self.visibleColumns = visibleColumns
+            self.onDelete = onDelete
             self._rowData = State(initialValue: ModelRowData(modelName: model))
         }
 
@@ -178,7 +204,8 @@ struct ModelManagementView: View {
 
                     ModelDeleteButton(
                         modelName: model,
-                        isDisabled: selectedModel == model
+                        isDisabled: selectedModel == model,
+                        onDelete: onDelete
                     )
                 }
             }
@@ -200,9 +227,13 @@ struct ModelManagementView: View {
     struct ModelDeleteButton: View {
         let modelName: String
         let isDisabled: Bool
-
+        
+        var onDelete: (() -> Void)?
+        
         @ObservedObject private var settings = Settings.shared
-
+        
+        @State private var successInDeletionOfModel: Bool = false
+        @State private var showModelDeletionAlert: Bool = false
         @State private var isPresentingConfirm: Bool = false
 
         var body: some View {
@@ -210,7 +241,16 @@ struct ModelManagementView: View {
                 if !settings.suppressModelDeletionConfirmation {
                     isPresentingConfirm = true
                 } else {
-                    print("Deleted model: \(modelName)")
+                    Task {
+                        let modelID: Model.ID = Model.ID(rawValue: modelName)!
+                        if try await client.deleteModel(modelID) {
+                            successInDeletionOfModel = true
+                            onDelete?()
+                        }else {
+                            successInDeletionOfModel = false
+                        }
+                        showModelDeletionAlert = true
+                    }
                 }
             } label: {
                 Image(systemName: "trash")
@@ -218,12 +258,31 @@ struct ModelManagementView: View {
             .disabled(isDisabled)
             .confirmationDialog("Are you sure?", isPresented: $isPresentingConfirm) {
                 Button("Delete model: \(modelName)", role: .destructive) {
-                    print("Confirmation of deletion of model: \(modelName)")
-                    isPresentingConfirm = false
+                    Task {
+                        let modelID = Model.ID(rawValue: modelName)
+                        if try await client.deleteModel(modelID!) {
+                            successInDeletionOfModel = true
+                            onDelete?()
+                        }else {
+                            successInDeletionOfModel = false
+                        }
+                        showModelDeletionAlert = true
+                    }
                 }
             }
             .dialogIcon(Image(systemName: "trash.circle.fill"))
             .dialogSuppressionToggle(isSuppressed: settings.$suppressModelDeletionConfirmation)
+            .alert(isPresented: $showModelDeletionAlert) {
+                Alert(title: Text(successInDeletionOfModel ?
+                                  "Successfully deleted model: \(modelName)" :
+                                    "Failed to delete model!"),
+                      message: Text(successInDeletionOfModel ?
+                                    "Removed model: \(modelName)" :
+                                        "Unable to remove model: \(modelName)"),
+                      dismissButton: .default(Text("OK"), action: {
+                    showModelDeletionAlert = false
+                }))
+            }
         }
     }
 

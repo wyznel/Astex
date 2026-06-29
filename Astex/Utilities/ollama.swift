@@ -1,5 +1,6 @@
 import Ollama
 import SwiftUI
+import Foundation
 
 @MainActor
 class LLM {
@@ -16,6 +17,8 @@ class LLM {
     }
     
     @State public var isResponseFinished: Bool = true
+    
+    // MARK: - Generate Title
     
     func generateTitle(_ previousMessages: [Message]) async -> String {
         do {
@@ -61,10 +64,13 @@ class LLM {
         return ""
     }
     
+    //MARK: - Generate with Streaming
+    
     func generateStream(_ previousMessages: [Message]) -> AsyncThrowingStream<String, Error> {
         return AsyncThrowingStream<String, Error> { continuation in
             
             let task = Task { @MainActor in
+                
                 do {
                     let messageHistory = previousMessages.map { message -> Ollama.Chat.Message in
                         if message.isUser {
@@ -96,5 +102,39 @@ class LLM {
             }
 
         }
+    }
+}
+
+// MARK: -  Extend OllamaSWIFT Client to have unloadModel()
+
+extension Ollama.Client {
+    func unloadModel(model: String) -> Bool {
+        
+        let res = try! shell("/usr/local/bin/ollama stop \(model)")
+
+        if res.code == 0 {
+            return true
+        }
+        return false
+    }
+    
+    @discardableResult
+    func shell(_ command: String) throws -> (output: String, code: Int32) {
+        let task = Process()
+        let pipe = Pipe()
+
+        task.standardOutput = pipe
+        task.standardError = pipe
+        task.standardInput = nil
+        task.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        task.arguments = ["-lc", command]
+        task.environment = ProcessInfo.processInfo.environment
+
+        try task.run()
+        task.waitUntilExit()
+
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: data, encoding: .utf8) ?? ""
+        return (output, task.terminationStatus)
     }
 }

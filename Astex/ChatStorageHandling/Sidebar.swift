@@ -54,7 +54,7 @@ struct ChatActionHandling: View {
             Spacer()
     
             DefaultButton(text: "Settings", imageShape: "gearshape"){
-                withAnimation(.spring(duration: settings.animationDelay)){
+                withAnimation(.spring(duration: settings.animationDelay * 2)){
                     settings.settingsOpened.toggle()
                 }
             }

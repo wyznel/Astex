@@ -56,8 +56,31 @@ class Utilities {
         ]
     }
 
-    struct allModelInfo {
-        
+    
+    func tryUnloadAllModels() async -> Bool {
+        do {
+            let loadedModels: Client.ListRunningModelsResponse = try await client.listRunningModels()
+            let loadedModels_Models: [Client.ListRunningModelsResponse.Model] = loadedModels.models
+            
+            var unloadedModelCount: Int = 0
+            let totalModels = loadedModels_Models.count
+            
+            loadedModels_Models.forEach { model in
+                let success: Bool = client.unloadModel(model: model.name)
+                if success {
+                    unloadedModelCount+=1
+                }
+                print(success ? "SUCCESS \(model.name)" : "FAIL \(model.name)")
+            }
+            
+            if unloadedModelCount == totalModels {
+                return true
+            }
+            
+        } catch {
+            print("lol")
+        }
+        return false
     }
-
 }
+
