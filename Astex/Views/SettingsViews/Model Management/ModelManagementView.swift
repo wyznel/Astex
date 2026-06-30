@@ -201,7 +201,6 @@ struct ModelManagementView: View {
                     ForEach(visibleColumns) { column in
                         Text(rowData[keyPath: column.keyPath])
                     }
-
                     ModelDeleteButton(
                         modelName: model,
                         isDisabled: selectedModel == model,

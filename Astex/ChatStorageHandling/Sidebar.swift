@@ -109,35 +109,94 @@ struct ChatActionHandling: View {
                             }
                         }
                 } else {
-                    Button {
-                        onSelectChat(chat)
-                    } label: {
-                        HStack {
-                            Image(systemName: "bubble.left")
-                            InlineText(markdown: chat.title)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .allowsHitTesting(false)
-                            Spacer()
-                        }.contentShape(Rectangle())
-                    }
-                    .contextMenu(menuItems: {
-                        Button("Delete", systemImage: "delete.backward") {
-                            onDeleteChat(chat)
-                        }
-                        Button("Edit Title", systemImage: "pencil") {
+                    
+                    ChatButton(
+                        chat: chat,
+                        onSelectChat: onSelectChat,
+                        onDeleteChat: onDeleteChat,
+                        getNewTitle: getNewTitle,
+                        editTitle: {
                             newChatTitleName = chat.title
                             editingChatTitleID = chat.id
                         }
-                        Button("Generate Title", systemImage: ""){
-                            getNewTitle(chat)
-                        }
-                    })
-                    .buttonStyle(ChatRowButtonStyle())
+                    )
                 }
             }
         }
         .animation(.spring(duration: Settings.shared.animationDelay), value: chats)
+    }
+    
+    struct ChatButton: View {
+        
+        var chat: Chat
+        
+        @State private var showDeleteChatButton: Bool = false
+        
+        var onSelectChat: (Chat) -> Void
+        var onDeleteChat: (Chat) -> Void
+        var getNewTitle: (Chat) -> Void
+        var editTitle: () -> Void
+        
+        var body: some View {
+            HStack {
+                Button(action: {}) {
+                    HStack {
+                        Image(systemName: "bubble.left")
+                        InlineText(markdown: chat.title)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .allowsHitTesting(false)
+                        Spacer()
+                    }.contentShape(Rectangle())
+                }
+                .simultaneousGesture(
+                    LongPressGesture(minimumDuration: 0.25)
+                        .onEnded { _ in
+                            Task {
+                                withAnimation(.spring(duration: Settings.shared.animationDelay)){
+                                    showDeleteChatButton = true
+                                }
+                                
+                                try? await Task.sleep(for: .seconds(5))
+                                
+                                withAnimation(.spring(duration: Settings.shared.animationDelay)){
+                                    showDeleteChatButton = false
+                                }
+                            }
+                        }
+                )
+                .highPriorityGesture(
+                    TapGesture()
+                        .onEnded{_ in
+                            onSelectChat(chat)
+                        }
+                )
+                .contextMenu(menuItems: {
+                    Button("Delete", systemImage: "delete.backward") {
+                        onDeleteChat(chat)
+                    }
+                    Button("Edit Title", systemImage: "pencil") {
+                        editTitle()
+    //                    newChatTitleName = chat.title
+    //                    editingChatTitleID = chat.id
+                    }
+                    Button("Generate Title", systemImage: ""){
+                        getNewTitle(chat)
+                    }
+                })
+                .buttonStyle(ChatRowButtonStyle())
+                
+                if showDeleteChatButton {
+                    Button {
+                        onDeleteChat(chat)
+                    } label: {
+                        Image(systemName: "trash")
+                            .foregroundStyle(Color.red)
+                    }
+                    .contentShape(Rectangle())
+                }
+            }
+        }
     }
     
     struct ChatRowButtonStyle: ButtonStyle {

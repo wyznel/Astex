@@ -91,6 +91,7 @@ struct ContentView: View {
     func mainBody() -> some View {
         VStack(spacing: 12) {
             if !chatWindowEmpty {
+//              MARK: - Chat Area
                 ScrollView {
                     VStack(spacing: 10){
                         ForEach(
@@ -123,7 +124,7 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .frame(maxWidth: 810)
+                    .frame(maxWidth: 810, maxHeight: .infinity)
                     .padding(.top, 8)
                 }
                 .frame(maxWidth: 810)
@@ -143,14 +144,16 @@ struct ContentView: View {
                 .animation(.spring(duration: settings.animationDelay * 2), value: prompt.isEmpty)
             }
             .padding(.horizontal, 10)
+            .padding(.bottom, 20)
             .frame(maxWidth: .infinity)
-            .frame(minWidth: 400, minHeight: 200)
+            .frame(minWidth: 400, minHeight: 100)
             .animation(.spring(duration: settings.animationDelay), value: isSendButtonHovered)
             if chatWindowEmpty { Spacer() }
         }
         .background(Color.sepiaBackground)
     }
-
+    
+// MARK: - Prompt Sending
     func handlePromptSending() async {
         let currentPrompt = prompt
         
