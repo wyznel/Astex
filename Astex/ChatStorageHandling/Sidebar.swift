@@ -172,16 +172,17 @@ struct ChatActionHandling: View {
                         }
                 )
                 .contextMenu(menuItems: {
-                    Button("Delete", systemImage: "delete.backward") {
-                        onDeleteChat(chat)
-                    }
-                    Button("Edit Title", systemImage: "pencil") {
+                    Button("Edit Title", systemImage: "keyboard") {
                         editTitle()
     //                    newChatTitleName = chat.title
     //                    editingChatTitleID = chat.id
                     }
-                    Button("Generate Title", systemImage: ""){
+                    Button("Generate Title", systemImage: "pencil"){
                         getNewTitle(chat)
+                    }
+                    Divider()
+                    Button("Delete", systemImage: "delete.backward") {
+                        onDeleteChat(chat)
                     }
                 })
                 .buttonStyle(ChatRowButtonStyle())
@@ -238,8 +239,8 @@ struct ChatActionHandling: View {
                 .frame(height: 30)
             }
             .glassEffect(hovered
-                         ? .regular.tint(Color.sepiaAccent.opacity(0.3))
-                         : .regular.tint(Color.sepiaAccent.opacity(0.125)))
+                         ? Settings.shared.glassEffect.tint(Color.sepiaAccent.opacity(0.3))
+                         : Settings.shared.glassEffect.tint(Color.sepiaAccent.opacity(0.125)))
             .animation(.spring(duration: Settings.shared.animationDelay), value: hovered)
             .clipShape(Capsule())
             .buttonStyle(.plain)

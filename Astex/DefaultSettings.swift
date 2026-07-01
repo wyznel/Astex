@@ -5,7 +5,7 @@ import Combine
 class Settings: ObservableObject {
     static let shared = Settings()
     
-    @Published var glassEffect: Glass = .regular
+    @Published var glassEffect: Glass = .regular.interactive(true)
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @Published var animationDelay: Double = 0.25
     @Published var settingsOpened: Bool = false

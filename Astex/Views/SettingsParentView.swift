@@ -22,13 +22,13 @@ struct SettingsView: View {
                     }
                 }
                 HStack(spacing: 0) {
-                    TabButton(icon: "gear", opacity: 0.0625, shape: Rectangle())
+                    TabButton(icon: "server.rack", opacity: 0.0625, shape: Rectangle())
                     {
                         withAnimation(.spring(duration: settings.animationDelay * 2)){
                             selectedTab = 1
                         }
                     }
-                    TabButton(icon: "plus", opacity: 0.0625, shape: Rectangle())
+                    TabButton(icon: "gearshape", opacity: 0.0625, shape: Rectangle())
                     {
                         withAnimation(.spring(duration: settings.animationDelay * 2)){
                             selectedTab = 2

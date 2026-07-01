@@ -236,6 +236,7 @@ struct ContentView: View {
             let newTitle = await llm.generateTitle(activeChat?.messages ?? [])
             print("Generated Title: \(newTitle)")
             activeChat?.title = newTitle
+            activeChat?.titleHasBeenGenerated = true
         }
     }
     

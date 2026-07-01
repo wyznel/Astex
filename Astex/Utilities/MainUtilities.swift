@@ -12,7 +12,7 @@ class Utilities {
 
     var AvailableModels: [String : Client.ListModelsResponse.Model] = [:]
     
-/// Load necessary values.
+    /// Load necessary values.
     init() {
         Task {
             let resp = await getAvailableModels_OLLAMA()
@@ -56,30 +56,40 @@ class Utilities {
         ]
     }
 
+//  MARK: - Model memory management
+    
+    func areAnyModelsLoaded() async -> Bool {
+        if await getRunningModels().isEmpty {
+            return false
+        }
+        return true
+    }
+    
+    func getRunningModels() async -> [String] {
+        do {
+            return (try await client.listRunningModels().models).map(\.name)
+        }catch{
+            print(error)
+        }
+        
+        return [""]
+    }
     
     func tryUnloadAllModels() async -> Bool {
-        do {
-            let loadedModels: Client.ListRunningModelsResponse = try await client.listRunningModels()
-            let loadedModels_Models: [Client.ListRunningModelsResponse.Model] = loadedModels.models
+        let loadedModels: [String] = await getRunningModels()
+        var unloadedModelCount: Int = 0
+        let totalModels = loadedModels.count
             
-            var unloadedModelCount: Int = 0
-            let totalModels = loadedModels_Models.count
-            
-            loadedModels_Models.forEach { model in
-                let success: Bool = client.unloadModel(model: model.name)
-                if success {
-                    unloadedModelCount+=1
-                }
-                print(success ? "SUCCESS \(model.name)" : "FAIL \(model.name)")
+        loadedModels.forEach { model in
+            if client.unloadModel(model: model) {
+                unloadedModelCount+=1
             }
-            
-            if unloadedModelCount == totalModels {
-                return true
-            }
-            
-        } catch {
-            print("lol")
         }
+
+        if unloadedModelCount == totalModels {
+            return true
+        }
+            
         return false
     }
 }

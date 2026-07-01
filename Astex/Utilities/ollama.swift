@@ -43,10 +43,10 @@ class LLM {
                 Project Astex Debugging
                 """)
             
-            var something = previousMessages
-            something.append(promptForTitleGen)
+            var sorted = previousMessages.sorted { $0.createdAt < $1.createdAt }
+            sorted.append(promptForTitleGen)
             
-            let messageHistory = something.map { message -> Ollama.Chat.Message in
+            let messageHistory = sorted.map { message -> Ollama.Chat.Message in
                 if message.isUser {
                     return .user(message.response)
                 } else {
@@ -72,7 +72,8 @@ class LLM {
             let task = Task { @MainActor in
                 
                 do {
-                    let messageHistory = previousMessages.map { message -> Ollama.Chat.Message in
+                    let sorted = previousMessages.sorted { $0.createdAt < $1.createdAt }
+                    let messageHistory = sorted.map { message -> Ollama.Chat.Message in
                         if message.isUser {
                             return .user(message.response)
                         } else {
