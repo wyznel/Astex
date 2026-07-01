@@ -401,7 +401,7 @@ struct ModelManagementView: View {
                     .contentShape(Rectangle())
             }
             .opacity((isLoaded || selectedModel == modelName) ? 1 : 0)
-            .disabled(selectedModel == modelName)
+            .disabled(selectedModel == modelName && !isLoaded)
             .contentShape(Rectangle())
             .task {
                 if await utilities.areAnyModelsLoaded() {
