@@ -5,6 +5,7 @@
 //  Created by Ben Herbert on 25/06/2026.
 //
 import Ollama
+import SwiftUI
 
 class Utilities {
     
@@ -94,3 +95,10 @@ class Utilities {
     }
 }
 
+// MARK: - Cleaner ```withAnimation```.
+
+func withAni(doubled: Bool = false, _ event: () -> Void) {
+    withAnimation(.spring(duration: Settings.shared.animationDelay * (doubled ? 2 : 1))) {
+        event()
+    }
+}

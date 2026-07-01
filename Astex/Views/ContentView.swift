@@ -35,7 +35,7 @@ struct ContentView: View {
                  generationTask?.cancel()
                  generationTask = nil
                  isAResponseGenerating = false
-                 withAnimation(.spring(duration: settings.animationDelay)){
+                 withAni {
                      settings.settingsOpened = false
                      activeChat = nil
                  }
@@ -48,7 +48,7 @@ struct ContentView: View {
                  generationTask = nil
                  isAResponseGenerating = false
                  streamingChunks = []
-                 withAnimation(.spring(duration: settings.animationDelay)) {
+                 withAni {
                      activeChat = chat
                      chatWindowEmpty = false
                  }
@@ -59,7 +59,7 @@ struct ContentView: View {
                      generationTask = nil
                      isAResponseGenerating = false
                      streamingChunks = []
-                     withAnimation(.spring(duration: settings.animationDelay*2)) {
+                     withAni(doubled: true) {
                          activeChat = nil
                          chatWindowEmpty = true
                      }
@@ -176,7 +176,7 @@ struct ContentView: View {
         prompt.removeAll()
         chatWindowEmpty = false
         
-        withAnimation(.spring(duration: settings.animationDelay)) {
+        withAni {
             let userMessage = Message(isUser: true, response: currentPrompt)
             modelContext.insert(userMessage)
             activeChat?.messages.append(userMessage)
@@ -223,7 +223,7 @@ struct ContentView: View {
         // Collapse all chunks into a single completed Message
         let fullResponse = streamingChunks.joined()
         if !fullResponse.isEmpty {
-            withAnimation(.spring(duration: settings.animationDelay)) {
+            withAni {
                 let llmMessage = Message(isUser: false, response: fullResponse)
                 modelContext.insert(llmMessage)
                 activeChat?.messages.append(llmMessage)

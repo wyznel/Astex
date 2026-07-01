@@ -22,13 +22,13 @@ struct HoverHelpMenu<HoverContent: View>: ViewModifier {
                 if hovering {
                     DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                         if isHovering {
-                            withAnimation(.spring(duration: Settings.shared.animationDelay)) {
+                            withAni {
                                 showHelp = true
                             }
                         }
                     }
                 } else {
-                    withAnimation(.spring(duration: Settings.shared.animationDelay)){
+                    withAni {
                         showHelp = false
                     }
                 }

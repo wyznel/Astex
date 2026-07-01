@@ -17,20 +17,20 @@ struct SettingsView: View {
         VStack {
             HStack(spacing: 20) {
                 TabButton(icon: "arrowshape.turn.up.backward", opacity: 0.125) {
-                    withAnimation(.spring(duration: settings.animationDelay * 2)) {
+                    withAni(doubled: true) {
                         settings.settingsOpened = false
                     }
                 }
                 HStack(spacing: 0) {
                     TabButton(icon: "server.rack", opacity: 0.0625, shape: Rectangle())
                     {
-                        withAnimation(.spring(duration: settings.animationDelay * 2)){
+                        withAni(doubled: true){
                             selectedTab = 1
                         }
                     }
                     TabButton(icon: "gearshape", opacity: 0.0625, shape: Rectangle())
                     {
-                        withAnimation(.spring(duration: settings.animationDelay * 2)){
+                        withAni(doubled: true){
                             selectedTab = 2
                         }
                     }
@@ -39,7 +39,7 @@ struct SettingsView: View {
                         opacity: 0.0625,
                         shape: Rectangle()
                     ) {
-                        withAnimation(.spring(duration: settings.animationDelay * 2)){
+                        withAni(doubled: true){
                             selectedTab = 3
                         }
                     }

@@ -105,7 +105,7 @@ struct ModelManagementView: View {
                             selectedModel: $selectedModel,
                             visibleColumns: visibleColumns,
                             onDelete: {
-                                withAnimation {
+                                withAni {
                                     models.removeAll { $0 == model }
                                 }
                             }
@@ -132,18 +132,18 @@ struct ModelManagementView: View {
         .contentShape(Rectangle())
         .contextMenu(menuItems: {
             Button("Size on Disk", systemImage: settings.showSizeOnDisk ? "checkmark" : "square") {
-                withAnimation(.spring(duration: settings.animationDelay)){
+                withAni {
                     settings.showSizeOnDisk.toggle()
                 }
             }
 
             Button("Format", systemImage: settings.showFormat ? "checkmark" : "square") {
-                withAnimation(.spring(duration: settings.animationDelay)){
+                withAni {
                     settings.showFormat.toggle()
                 }
             }
             Button("Parameter Size", systemImage: settings.showParameterSize ? "checkmark" : "square") {
-                withAnimation(.spring(duration: settings.animationDelay)){
+                withAni{
                     settings.showParameterSize.toggle()
                 }
             }
@@ -375,7 +375,7 @@ struct ModelManagementView: View {
         }
         
         private func setIndex(to newIndex: ButtonText) {
-            withAnimation(.spring(duration: Settings.shared.animationDelay)){
+            withAni {
                 selectedText = newIndex
             }
         }

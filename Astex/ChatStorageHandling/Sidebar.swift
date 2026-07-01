@@ -38,7 +38,7 @@ struct ChatActionHandling: View {
         VStack {
             
             DefaultButton(text: "New Chat", imageShape: "square.and.pencil") {
-                withAnimation(.spring(duration: settings.animationDelay*2)) {
+                withAni(doubled: true){
                     onNewChat()
                 }
             }
@@ -54,7 +54,7 @@ struct ChatActionHandling: View {
             Spacer()
     
             DefaultButton(text: "Settings", imageShape: "gearshape"){
-                withAnimation(.spring(duration: settings.animationDelay * 2)){
+                withAni(doubled: true){
                     settings.settingsOpened.toggle()
                 }
             }
@@ -153,14 +153,25 @@ struct ChatActionHandling: View {
                     LongPressGesture(minimumDuration: 0.25)
                         .onEnded { _ in
                             Task {
-                                withAnimation(.spring(duration: Settings.shared.animationDelay)){
-                                    showDeleteChatButton = true
+                            
+                                if showDeleteChatButton {
+                                    withAni(doubled: true) {
+                                        showDeleteChatButton = false
+                                    }
+                                }else{
+                                    withAni(doubled: true){
+                                        showDeleteChatButton = true
+                                    }
                                 }
+                                
+                                if !showDeleteChatButton { return }
                                 
                                 try? await Task.sleep(for: .seconds(5))
                                 
-                                withAnimation(.spring(duration: Settings.shared.animationDelay)){
-                                    showDeleteChatButton = false
+                                if showDeleteChatButton {
+                                    withAni(doubled: true){
+                                        showDeleteChatButton = false
+                                    }
                                 }
                             }
                         }
@@ -168,14 +179,14 @@ struct ChatActionHandling: View {
                 .highPriorityGesture(
                     TapGesture()
                         .onEnded{_ in
-                            onSelectChat(chat)
+                            withAni(doubled: true){
+                                onSelectChat(chat)
+                            }
                         }
                 )
                 .contextMenu(menuItems: {
                     Button("Edit Title", systemImage: "keyboard") {
                         editTitle()
-    //                    newChatTitleName = chat.title
-    //                    editingChatTitleID = chat.id
                     }
                     Button("Generate Title", systemImage: "pencil"){
                         getNewTitle(chat)
