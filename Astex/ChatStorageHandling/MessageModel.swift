@@ -7,11 +7,14 @@ final class Message {
     var response: String
     var chat: Chat?
     var createdAt: Date
+    var isThinking: Bool = false
     
-    init(isUser: Bool, response: String) {
+    
+    init(isUser: Bool, response: String, isThinking: Bool) {
         self.isUser = isUser
         self.response = response
         self.createdAt = .now
+        self.isThinking = isThinking
     }
     
 }

@@ -74,6 +74,11 @@ struct ModelManagementView: View {
                     .frame(alignment: .leading)
                 Spacer()
                 
+                //TODO: - IMPLEMENT REFRESHING FOR MODELS.
+                
+                Refresh {
+                    print("Refresh models list.")
+                }
                 UnloadAllModelsButton()
             }
             .frame(maxWidth: 600)
@@ -314,7 +319,7 @@ struct ModelManagementView: View {
     }
     
     // MARK: - Unload All Models Button
-    
+
     struct UnloadAllModelsButton: View {
         
         enum ButtonText {

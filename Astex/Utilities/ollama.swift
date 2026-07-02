@@ -2,6 +2,12 @@ import Ollama
 import SwiftUI
 import Foundation
 
+
+enum StreamChunk {
+    case thinking(String)
+    case content(String)
+}
+
 @MainActor
 class LLM {
     let client = Client.default
@@ -41,7 +47,7 @@ class LLM {
                 Example Valid output exampls:
                 DNS Help
                 Project Astex Debugging
-                """)
+                """, isThinking: false)
             
             var sorted = previousMessages.sorted { $0.createdAt < $1.createdAt }
             sorted.append(promptForTitleGen)
@@ -66,30 +72,40 @@ class LLM {
     
     //MARK: - Generate with Streaming
     
-    func generateStream(_ previousMessages: [Message]) -> AsyncThrowingStream<String, Error> {
-        return AsyncThrowingStream<String, Error> { continuation in
+    func generateStream(_ previousMessages: [Message]) -> AsyncThrowingStream<StreamChunk, Error> {
+        return AsyncThrowingStream<StreamChunk, Error> { continuation in
             
             let task = Task { @MainActor in
-                
                 do {
                     let sorted = previousMessages.sorted { $0.createdAt < $1.createdAt }
                     let messageHistory = sorted.map { message -> Ollama.Chat.Message in
                         if message.isUser {
                             return .user(message.response)
-                        } else {
+                        } else if !message.isThinking {
                             return .assistant(message.response)
+                        }else{
+                            return .assistant("")
                         }
                     }
+                    
                     
                     let stream = try client.chatStream(
                         model: "\(Settings.shared.selectedModel)",
                         messages: messageHistory,
+                        think: await client.supportsThinking(model: Settings.shared.selectedModel),
                         keepAlive: .minutes(5)
                     )
                     
                     for try await chunk in stream {
                         try Task.checkCancellation()
-                        continuation.yield(chunk.message.content)
+                        
+                        if let thinking = chunk.message.thinking, !thinking.isEmpty {
+                            continuation.yield(.thinking(thinking))
+                        }
+                        
+                        if !chunk.message.content.isEmpty {
+                            continuation.yield(.content(chunk.message.content))
+                        }
                     }
                     continuation.finish()
                 } catch {
@@ -112,7 +128,6 @@ extension Ollama.Client {
     func unloadModel(model: String) -> Bool {
         
         let res = try! shell("/usr/local/bin/ollama stop \(model)")
-
         if res.code == 0 {
             return true
         }
@@ -138,4 +153,21 @@ extension Ollama.Client {
         let output = String(data: data, encoding: .utf8) ?? ""
         return (output, task.terminationStatus)
     }
+}
+
+// MARK: - Add supportsThinking() to Client.
+extension Ollama.Client {
+    
+    func supportsThinking(model: String) async -> Bool {
+        do {
+            let modelInfo = try await self.showModel("\(model)")
+            
+            return modelInfo.capabilities.contains(.thinking)
+        }catch {
+            print(error)
+        }
+        return false
+    }
+    
+    
 }

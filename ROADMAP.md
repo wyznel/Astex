@@ -4,6 +4,7 @@
 - [X] Chat saving and loading implemented
 - [X] Automatic title generation.
 - [X] Migrate to use NavigationLink instead of custom sidebar
+- [ ] Implement compatibility with thinking models.
 - [ ] Complete Model Management settings tab for ollama.
     - [X] Show table of models
     - [X] Delete models
