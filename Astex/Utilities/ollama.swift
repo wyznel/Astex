@@ -226,7 +226,7 @@ extension Ollama.Client {
     /// Avoids making two separate showModel HTTP requests.
     func modelCapabilities(model: String) async -> ModelCapabilities {
         do {
-            let modelInfo = try await self.showModel(model)
+            let modelInfo = try await self.showModel("\(model)")
             return ModelCapabilities(
                 supportsTools: modelInfo.capabilities.contains(.tools),
                 supportsThinking: modelInfo.capabilities.contains(.thinking)
