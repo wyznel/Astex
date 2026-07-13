@@ -358,26 +358,14 @@ struct ContentView: View {
     func userInputArea() -> some View {
         HStack(alignment: .bottom, spacing: 12) {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12){
-                    ForEach(uploadedFiles, id: \.id) { file in
-                        HStack(spacing: 6) {
-                            Image(systemName: "text.document")
-                                .padding(2)
-                            Text(file.url.lastPathComponent)
-                            Button {
-                                withAni {
-                                    file.url.stopAccessingSecurityScopedResource()
-                                    uploadedFiles.removeAll { $0.id == file.id }
-                                }
-                            }label: {
-                                Image(systemName: "delete.left")
-                            }
-                            .buttonStyle(.plain)
-                            .contentShape(Rectangle())
+                GlassEffectContainer {
+                    HStack(spacing: 12){
+                        ForEach(uploadedFiles, id: \.id) { file in
+                            UploadedFileView(
+                                file: file,
+                                uploadedFiles: $uploadedFiles
+                            )
                         }
-                        .frame(maxWidth: 100, maxHeight: 30)
-                        .background(Color.sepiaSurface, in: .rect(cornerRadius: 6))
-                        .offset(y: 4)
                     }
                 }
                 

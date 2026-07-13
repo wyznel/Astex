@@ -7,14 +7,26 @@
 import SwiftUI
 
 struct UploadedFileView: View {
-    let url: URL
+    let file: UploadedFile
+    @Binding var uploadedFiles: [UploadedFile]
     
     var body: some View {
-        HStack(alignment: .bottom, spacing: 12) {
+        HStack(spacing: 6) {
             Image(systemName: "text.document")
-            Text(url.lastPathComponent)
+                .padding(2)
+            Text(file.url.lastPathComponent)
+            Button {
+                withAni {
+                    file.url.stopAccessingSecurityScopedResource()
+                    uploadedFiles.removeAll { $0.id == file.id }
+                }
+            }label: {
+                Image(systemName: "delete.left")
+            }
+            .contentShape(Rectangle())
         }
-        .glassEffect(Settings.shared.glassEffect)
-        .frame(maxWidth: 50, maxHeight: 20)
+        .frame(maxWidth: 100, maxHeight: 30)
+        .glassEffect(Settings.shared.glassEffect, in: .rect(cornerRadius: 6))
+        .offset(y: 4)
     }
 }

@@ -29,14 +29,14 @@ enum DocumentCreation {
     /// Base directory for all LLM-created documents.
     nonisolated(unsafe) static var outputDirectory: URL {
         FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("/Documents/Astex/", isDirectory: true)
+            .appendingPathComponent("/Downloads/Astex/", isDirectory: true)
     }
 
     /// Builds and returns the Ollama Tool wrapped in an AnyTool for registry registration.
     static func makeTool() -> AnyTool<DocumentCreationInput, DocumentCreationOutput> {
         let tool = Tool<DocumentCreationInput, DocumentCreationOutput>(
             name: "create_document",
-            description: "Creates and saves a text document to disk. Use this when the user asks you to write, generate, or save a document, note, file, or report.",
+            description: "Creates and saves a text document to disk. Use this when the user asks you to write, generate, or save a document, note, file, or report. ENSURE TO INFORM THE USER OF THE SAVED LOCATION AND CONTENTS OF THE FILE",
             parameters: [
                 "filename": [
                     "type": "string",
