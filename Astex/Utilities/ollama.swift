@@ -116,11 +116,12 @@ class LLM {
                         }
                     }
 
-                    // Determine tool capability once before the loop
-                    let supportsTools = await client.supportsTools(
+                    // Query model capabilities once before the loop to avoid
+                    // repeated showModel HTTP requests on every iteration.
+                    let capabilities = await client.modelCapabilities(
                         model: Settings.shared.selectedModel
                     )
-                    let activeToolProtocols: [any ToolProtocol]? = (supportsTools && toolRegistry != nil && !(toolRegistry!.isEmpty))
+                    let activeToolProtocols: [any ToolProtocol]? = (capabilities.supportsTools && toolRegistry != nil && !(toolRegistry!.isEmpty))
                         ? toolRegistry!.allToolProtocols : nil
 
                     // Tool-call loop: capped at 5 rounds to prevent runaway execution.
@@ -135,9 +136,7 @@ class LLM {
                             model: "\(Settings.shared.selectedModel)",
                             messages: messageHistory,
                             tools: activeToolProtocols,
-                            think: await client.supportsThinking(
-                                model: Settings.shared.selectedModel
-                            ),
+                            think: capabilities.supportsThinking,
                             keepAlive: .minutes(5)
                         )
 
@@ -199,61 +198,48 @@ class LLM {
     }
 }
 
-// MARK: -  Extend OllamaSWIFT Client to have unloadModel()
+// MARK: - Extend Ollama Client with model utilities
 
 extension Ollama.Client {
+
+    /// Unloads a model using the ollama CLI.
+    /// Uses a Process argument array instead of shell interpolation to
+    /// prevent command injection via model names.
     func unloadModel(model: String) -> Bool {
-        
-        let res = try! shell("/usr/local/bin/ollama stop \(model)")
-        if res.code == 0 {
-            return true
+        do {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/local/bin/ollama")
+            process.arguments = ["stop", model]
+            process.standardOutput = nil
+            process.standardError = nil
+            process.standardInput = nil
+            try process.run()
+            process.waitUntilExit()
+            return process.terminationStatus == 0
+        } catch {
+            print("Failed to unload model: \(error)")
+            return false
         }
-        return false
     }
-    
-    @discardableResult
-    func shell(_ command: String) throws -> (output: String, code: Int32) {
-        let task = Process()
-        let pipe = Pipe()
 
-        task.standardOutput = pipe
-        task.standardError = pipe
-        task.standardInput = nil
-        task.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        task.arguments = ["-lc", command]
-        task.environment = ProcessInfo.processInfo.environment
-
-        try task.run()
-        task.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8) ?? ""
-        return (output, task.terminationStatus)
+    /// Queries the model once and returns both tool and thinking capabilities.
+    /// Avoids making two separate showModel HTTP requests.
+    func modelCapabilities(model: String) async -> ModelCapabilities {
+        do {
+            let modelInfo = try await self.showModel(model)
+            return ModelCapabilities(
+                supportsTools: modelInfo.capabilities.contains(.tools),
+                supportsThinking: modelInfo.capabilities.contains(.thinking)
+            )
+        } catch {
+            print("Failed to query model capabilities: \(error)")
+            return ModelCapabilities(supportsTools: false, supportsThinking: false)
+        }
     }
 }
 
-// MARK: - Add supportsThinking() to Client.
-extension Ollama.Client {
-    func supportsThinking(model: String) async -> Bool {
-        do {
-            let modelInfo = try await self.showModel("\(model)")
-            return modelInfo.capabilities.contains(.thinking)
-        } catch {
-            print(error)
-        }
-        return false
-    }
-}
-
-// MARK: - Add supportsTools() to Client.
-extension Ollama.Client {
-    func supportsTools(model: String) async -> Bool {
-        do {
-            let modelInfo = try await self.showModel("\(model)")
-            return modelInfo.capabilities.contains(.tools)
-        } catch {
-            print(error)
-        }
-        return false
-    }
+/// Cached result of a single showModel query.
+struct ModelCapabilities: Sendable {
+    let supportsTools: Bool
+    let supportsThinking: Bool
 }

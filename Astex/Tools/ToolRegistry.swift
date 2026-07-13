@@ -14,22 +14,28 @@ import Foundation
 /// `generateStream` interacts only with this type -- it never references
 /// any specific tool or its generic Input/Output types.
 ///
-/// To add a new tool, register it here and create its implementation in Tools/.
-/// No other files need to change.
+/// All state is immutable after initialisation, making `@unchecked Sendable`
+/// safe despite the existential types. To add a new tool, pass it into the
+/// initialiser. No other files need to change.
 final class ToolRegistry: @unchecked Sendable {
-    private var tools: [String: any ExecutableTool] = [:]
+    private let tools: [String: any ExecutableTool]
 
     /// All registered tools as ToolProtocol instances, ready for chatStream().
-    var allToolProtocols: [any ToolProtocol] {
-        tools.values.map(\.toolProtocol)
-    }
+    /// Cached at init to avoid allocating a new array on every access.
+    let allToolProtocols: [any ToolProtocol]
 
     /// Whether any tools are registered.
     var isEmpty: Bool { tools.isEmpty }
 
-    /// Register a tool. Overwrites any existing registration with the same name.
-    func register(_ tool: any ExecutableTool) {
-        tools[tool.name] = tool
+    /// Initialise with an array of tools. Each tool's `name` is used as its
+    /// lookup key; duplicates are resolved by last-write-wins.
+    init(tools: [any ExecutableTool]) {
+        var dict: [String: any ExecutableTool] = [:]
+        for tool in tools {
+            dict[tool.name] = tool
+        }
+        self.tools = dict
+        self.allToolProtocols = Array(dict.values.map(\.toolProtocol))
     }
 
     /// Look up and execute a tool by name with the provided arguments.

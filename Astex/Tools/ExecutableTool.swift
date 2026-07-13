@@ -35,10 +35,15 @@ protocol ExecutableTool: Sendable {
 ///
 /// This works because both `Value` and the tool `Input`/`Output` types are
 /// `Codable`, sharing the same underlying JSON representation.
+///
+/// The encoder and decoder are cached as instance properties to avoid
+/// allocating new instances on every tool invocation.
 struct AnyTool<Input: Codable & Sendable, Output: Codable & Sendable>: ExecutableTool {
     let name: String
     let toolProtocol: any ToolProtocol
     private let tool: Tool<Input, Output>
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
 
     init(tool: Tool<Input, Output>, name: String) {
         self.name = name
@@ -50,12 +55,12 @@ struct AnyTool<Input: Codable & Sendable, Output: Codable & Sendable>: Executabl
         // Encode the [String: Value] arguments dict to JSON Data via Value's Codable conformance,
         // then decode into the concrete Input type.
         let argumentsValue = Value.object(arguments)
-        let data = try JSONEncoder().encode(argumentsValue)
-        let input = try JSONDecoder().decode(Input.self, from: data)
+        let data = try encoder.encode(argumentsValue)
+        let input = try decoder.decode(Input.self, from: data)
 
         let output = try await tool(input)
 
-        let outputData = try JSONEncoder().encode(output)
+        let outputData = try encoder.encode(output)
         return String(data: outputData, encoding: .utf8) ?? "{}"
     }
 }

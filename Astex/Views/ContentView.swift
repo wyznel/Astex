@@ -42,13 +42,11 @@ struct ContentView: View {
     private let llm = LLM()
 
     /// Centralised registry of all tools the LLM can invoke.
-    /// To add a new tool: create its implementation in Tools/ and add a
-    /// registry.register(...) line in this closure.
-    private let toolRegistry: ToolRegistry = {
-        let registry = ToolRegistry()
-        registry.register(DocumentCreation.makeTool())
-        return registry
-    }()
+    /// To add a new tool: create its implementation in Tools/ and add it
+    /// to the array below. No other files need to change.
+    private let toolRegistry = ToolRegistry(tools: [
+        DocumentCreation.makeTool()
+    ])
 
     var body: some View {
         NavigationSplitView {
@@ -295,7 +293,7 @@ struct ContentView: View {
                 // User cancelled. Keep partial response.
             } else {
                 // Seed the array if no chunk arrived before the failure.
-                if await llm.client.supportsThinking(model: Settings.shared.selectedModel) && thinkingStreamingChunks.isEmpty {
+                if thinkingStreamingChunks.isEmpty {
                     thinkingStreamingChunks.append("")
                     thinkingStreamingChunks[thinkingStreamingChunks.count - 1] = "LLM Failed to respond"
                 }
@@ -310,15 +308,15 @@ struct ContentView: View {
             return
         }
         
-        // Collapse all chunks into a single completed Message
-        if await llm.client.supportsThinking(model: Settings.shared.selectedModel) {
-            let fullThinkingResp = thinkingStreamingChunks.joined()
-            if !fullThinkingResp.isEmpty {
-                withAni {
-                    let llmThinking = Message(isUser: false, response: fullThinkingResp, isThinking: true, isAToolCall: false)
-                    modelContext.insert(llmThinking)
-                    activeChat?.messages.append(llmThinking)
-                }
+        // Collapse all chunks into a single completed Message.
+        // If thinking chunks were collected, the model supported thinking --
+        // no need to re-query the API.
+        let fullThinkingResp = thinkingStreamingChunks.joined()
+        if !fullThinkingResp.isEmpty {
+            withAni {
+                let llmThinking = Message(isUser: false, response: fullThinkingResp, isThinking: true, isAToolCall: false)
+                modelContext.insert(llmThinking)
+                activeChat?.messages.append(llmThinking)
             }
         }
         let allToolsCalled = toolCallingChunks.joined()
