@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import Textual
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -15,21 +16,40 @@ struct ContentView: View {
     @State private var prompt: String = ""
     @State private var chatWindowEmpty: Bool = true
     @State private var isSendButtonHovered: Bool = false
+    @State private var isUploadFileButtonHovered: Bool = false
     @State private var isAResponseGenerating: Bool = false
     @State private var generationTask: Task<Void, Never>? = nil
+    @State private var showDeleteChatButton: Bool = false
+    
     
     @ObservedObject private var settings = Settings.shared
+    
+    private var utilities = Utilities()
     
     @State private var activeChat: Chat? = nil
     @State private var streamingChunks: [String] = []
     @State private var thinkingStreamingChunks: [String] = []
+    @State private var toolCallingChunks: [String] = []
+    @State private var availableModels: [String] = []
+    
+    @State private var showFileImporter: Bool = false
+    
+    @State private var uploadedFiles: [UploadedFile] = []
     
     private let chunkCharLimit = 1000
     
-    private var scaleFactor: Double = 1.2
     
     private let llm = LLM()
-    
+
+    /// Centralised registry of all tools the LLM can invoke.
+    /// To add a new tool: create its implementation in Tools/ and add a
+    /// registry.register(...) line in this closure.
+    private let toolRegistry: ToolRegistry = {
+        let registry = ToolRegistry()
+        registry.register(DocumentCreation.makeTool())
+        return registry
+    }()
+
     var body: some View {
         NavigationSplitView {
             ChatActionHandling(
@@ -108,7 +128,11 @@ struct ContentView: View {
                             }else if !message.isThinking {
                                 MessageView(message: message.response, isUserMessage: false)
                                     .transition(.opacity)
-                            }else{
+                            } else if message.isAToolCall {
+                                MessageView(message: message.response, isUserMessage: false)
+                                    .transition(.opacity)
+                            }
+                            else{
                                 ThinkingView(message: message.response)
                                     .transition(.opacity)
                             }
@@ -173,7 +197,7 @@ struct ContentView: View {
             .padding(.bottom, 20)
             .frame(maxWidth: .infinity)
             .frame(minWidth: 400, minHeight: 100)
-            .animation(.spring(duration: settings.animationDelay), value: isSendButtonHovered)
+
             if chatWindowEmpty { Spacer() }
         }
         .background(Color.sepiaBackground)
@@ -182,6 +206,7 @@ struct ContentView: View {
 // MARK: - Prompt Sending
     func handlePromptSending() async {
         let currentPrompt = prompt
+        let currentFiles = uploadedFiles
         
         if activeChat == nil {
             let chat = Chat(title: currentPrompt)
@@ -200,26 +225,40 @@ struct ContentView: View {
         }
         
         prompt.removeAll()
+        uploadedFiles.removeAll()
         messageHistoryIndex = -1
         chatWindowEmpty = false
         
+        // Read file contents while security-scoped access is still active
+        let fileContext = FileHandling.buildContext(from: currentFiles)
+        
+        // Now release security-scoped access
+        for file in currentFiles {
+            file.url.stopAccessingSecurityScopedResource()
+        }
+
         withAni {
-            let userMessage = Message(isUser: true, response: currentPrompt, isThinking: false)
+            let userMessage = Message(isUser: true, response: currentPrompt, isThinking: false, isAToolCall: false)
             modelContext.insert(userMessage)
             activeChat?.messages.append(userMessage)
         }
+
         // Keep streamingChunks empty until the first chunk arrives so the
-        // streaming view container is not rendered at all beforehand — avoids
+        // streaming view container is not rendered at all beforehand -- avoids
         // showing the previous response's bubble while waiting for the new stream.
         streamingChunks = []
         
         do {
-            let stream = llm.generateStream(activeChat?.messages ?? [])
+            let stream = llm.generateStream(
+                activeChat?.messages ?? [],
+                fileContext: fileContext,
+                toolRegistry: toolRegistry
+            )
             
             for try await chunk in stream {
                 guard !Task.isCancelled else { break }
                 guard activeChat == chatAtStart else { break }
-
+                
                 switch chunk {
                 case .thinking(let text):
                     if thinkingStreamingChunks.isEmpty {
@@ -242,8 +281,14 @@ struct ContentView: View {
                     if streamingChunks.last!.count >= chunkCharLimit {
                         streamingChunks.append("")
                     }
+                case .toolCall(let text):
+                    if toolCallingChunks.isEmpty {
+                        toolCallingChunks.append("")
+                    }
+                    
+                    toolCallingChunks[toolCallingChunks.count - 1] += text
                 }
-
+            
             }
         } catch {
             if Task.isCancelled {
@@ -270,23 +315,36 @@ struct ContentView: View {
             let fullThinkingResp = thinkingStreamingChunks.joined()
             if !fullThinkingResp.isEmpty {
                 withAni {
-                    let llmThinking = Message(isUser: false, response: fullThinkingResp, isThinking: true)
+                    let llmThinking = Message(isUser: false, response: fullThinkingResp, isThinking: true, isAToolCall: false)
                     modelContext.insert(llmThinking)
                     activeChat?.messages.append(llmThinking)
                 }
             }
         }
+        let allToolsCalled = toolCallingChunks.joined()
+        print(allToolsCalled)
+        
+        if !allToolsCalled.isEmpty {
+            withAni {
+                let toolCalledDisplay = Message(isUser: false, response: allToolsCalled, isThinking: false, isAToolCall: true)
+                modelContext.insert(toolCalledDisplay)
+                activeChat?.messages.append(toolCalledDisplay)
+            }
+        }
+        
         
         let fullResponse = streamingChunks.joined()
         if !fullResponse.isEmpty {
             withAni {
-                let llmMessage = Message(isUser: false, response: fullResponse, isThinking: false)
+                let llmMessage = Message(isUser: false, response: fullResponse, isThinking: false, isAToolCall: false)
                 modelContext.insert(llmMessage)
                 activeChat?.messages.append(llmMessage)
             }
         }
         streamingChunks = []
+        toolCallingChunks = []
         thinkingStreamingChunks = []
+        
         //Generate a title for a chat after a few messages have been sent/recieved.
         if activeChat?.messages.count ?? 0 > 2 && !activeChat!.titleHasBeenGenerated {
             let newTitle = await llm.generateTitle(activeChat?.messages ?? [])
@@ -301,80 +359,168 @@ struct ContentView: View {
     @ViewBuilder
     func userInputArea() -> some View {
         HStack(alignment: .bottom, spacing: 12) {
-            TextEditor(text: $prompt)
-                .font(.body)
-                .scrollContentBackground(.hidden)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 15)
-                .frame(minHeight: 30, maxHeight: 200)
-                .frame(width: prompt.isEmpty ? 400 : 750)
-                .fixedSize(horizontal: false, vertical: true)
-                .scrollDisabled(prompt.isEmpty)
-                .overlay(alignment: .topLeading) {
-                    if prompt.isEmpty {
-                        Text("Enter prompt")
-                            .font(.body)
-                            .foregroundColor(Color(nsColor: .placeholderTextColor))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 14)
-                            .allowsHitTesting(false)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 12){
+                    ForEach(uploadedFiles, id: \.id) { file in
+                        HStack(spacing: 6) {
+                            Image(systemName: "text.document")
+                                .padding(2)
+                            Text(file.url.lastPathComponent)
+                            Button {
+                                withAni {
+                                    file.url.stopAccessingSecurityScopedResource()
+                                    uploadedFiles.removeAll { $0.id == file.id }
+                                }
+                            }label: {
+                                Image(systemName: "delete.left")
+                            }
+                            .buttonStyle(.plain)
+                            .contentShape(Rectangle())
+                        }
+                        .frame(maxWidth: 100, maxHeight: 30)
+                        .background(Color.sepiaSurface, in: .rect(cornerRadius: 6))
+                        .offset(y: 4)
                     }
                 }
-                .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 6))
-                .onKeyPress(keys: [.return], phases: .down) { keyPress in
-                    if keyPress.modifiers.contains(.shift) {
-                        return .ignored
+                
+                TextEditor(text: $prompt)
+                    .font(.body)
+                    .scrollContentBackground(.hidden)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 15)
+                    .frame(minHeight: 30, maxHeight: 200)
+                    .frame(width: prompt.isEmpty ? 400 : 750)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .scrollDisabled(prompt.isEmpty)
+                    .overlay(alignment: .topLeading) {
+                        if prompt.isEmpty {
+                            Text("Enter prompt")
+                                .font(.body)
+                                .foregroundColor(Color(nsColor: .placeholderTextColor))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 14)
+                                .allowsHitTesting(false)
+                        }
                     }
-                    guard !prompt.isEmpty && !isAResponseGenerating else { return .handled }
-                    generationTask = Task { @MainActor in
-                        await handlePromptSending()
+                    .onKeyPress(keys: [.return], phases: .down) { keyPress in
+                        if keyPress.modifiers.contains(.shift) {
+                            return .ignored
+                        }
+                        guard !prompt.isEmpty && !isAResponseGenerating else { return .handled }
+                        generationTask = Task { @MainActor in
+                            await handlePromptSending()
+                        }
+                        return .handled
                     }
-                    return .handled
-                }
-                .onKeyPress(keys: [.upArrow], phases: .down) { keyPress in
-                    let sorted = (activeChat?.messages ?? [])
-                        .filter { $0.isUser }
-                        .sorted { $0.createdAt < $1.createdAt }
+                    .onKeyPress(keys: [.upArrow], phases: .down) { keyPress in
+                        let sorted = (activeChat?.messages ?? [])
+                            .filter { $0.isUser }
+                            .sorted { $0.createdAt < $1.createdAt }
+                        
+                        guard !sorted.isEmpty else { return .ignored }
+                        
+                        let nextIndex = messageHistoryIndex + 1
+                        
+                        guard nextIndex < sorted.count else { return .handled }
+                        
+                        messageHistoryIndex = nextIndex
+                        prompt = sorted[sorted.count - 1 - messageHistoryIndex].response
+                        
+                        return .handled
+                    }
+                
+                HStack(alignment: .bottom, spacing: 12) {
+                    Button {
+                        showFileImporter = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .frame(width: 8, height: 12)
+                    }
+                    .buttonStyle(.glass)
+                    .offset(x: 4, y: -4)
+                    .onHover { hover in
+                        withAni {
+                            isUploadFileButtonHovered = hover
+                        }
+                    }
                     
-                    guard !sorted.isEmpty else { return .ignored }
-                    
-                    let nextIndex = messageHistoryIndex + 1
-                    
-                    guard nextIndex < sorted.count else { return .handled }
-                    
-                    messageHistoryIndex = nextIndex
-                    prompt = sorted[sorted.count - 1 - messageHistoryIndex].response
-                    
-                    return .handled
-                }
-            Button {
-                if isAResponseGenerating {
-                    generationTask?.cancel()
-                    isAResponseGenerating = false
-                    streamingChunks = []
-                }else {
-                    generationTask = Task { @MainActor in
-                        await handlePromptSending()
+                    Spacer()
+
+                    Menu {
+                        ForEach(availableModels, id: \.self) { model in
+                            Button {
+                                settings.selectedModel = model
+                            } label: {
+                                Text(model)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(settings.selectedModel)
+                                .font(.caption)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption2)
+                        }
+                        .foregroundStyle(.secondary)
+                    }
+                    .menuStyle(.borderlessButton)
+                    .task {
+                        // Load available models once when the menu appears
+                        availableModels = await utilities.getAvailableModelsNAME_ONLY_OLLAMA()
+                    }
+                    .fixedSize()
+                    .offset(y: -4)
+
+                    Button {
+                        if isAResponseGenerating {
+                            generationTask?.cancel()
+                            isAResponseGenerating = false
+                            streamingChunks = []
+                        } else {
+                            generationTask = Task { @MainActor in
+                                await handlePromptSending()
+                            }
+                        }
+                    } label: {
+                        Image(systemName: isAResponseGenerating ? "stop.fill" : "arrow.up")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .contentShape(Rectangle())
+                    }
+                    .disabled(prompt.isEmpty && !isAResponseGenerating)
+                    .buttonStyle(.glass)
+                    .offset(x: -4, y: -4)
+                    .frame(width: 24, height: 20)
+                    .onHover { hover in
+                        withAni {
+                            isSendButtonHovered = hover && !prompt.isEmpty
+                        }
                     }
                 }
-            } label: {
-                Image(systemName: isAResponseGenerating ? "stop.fill" : "arrow.up")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .contentShape(Rectangle())
             }
-            .disabled(prompt.isEmpty && !isAResponseGenerating)
-            .buttonStyle(.glass)
-            .frame(
-                width: isSendButtonHovered ? 48 * scaleFactor : 48,
-                height: isSendButtonHovered ? 45 * scaleFactor : 45
-            )
-            .onHover { hover in
-                isSendButtonHovered = hover && !prompt.isEmpty
+            .padding(.leading, 5)
+            .padding(.bottom, 3)
+            .frame(maxWidth: prompt.isEmpty ? 400 : 750)
+            .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 8))
+        }
+        .offset(y: chatWindowEmpty ? 0 : -20)
+        .fileImporter(
+            isPresented: $showFileImporter,
+            allowedContentTypes: [.text, .pdf],
+            allowsMultipleSelection: true
+        ) { result in
+            switch result {
+            case .success(let urls):
+                for url in urls {
+                    guard url.startAccessingSecurityScopedResource() else { continue }
+                    let uploadedFile: UploadedFile = UploadedFile(url: url)
+                    uploadedFiles.append(uploadedFile)
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
             }
-            .animation(.spring(duration: settings.animationDelay), value: isSendButtonHovered)
         }
     }
-    
     
     @ViewBuilder
     func MessageView(message: String, isUserMessage: Bool) -> some View {
@@ -400,10 +546,7 @@ struct ContentView: View {
                 .frame(maxWidth: 500, alignment: .leading)
             Spacer()
         }
+        .opacity(0.4)
     }
     
-}
-
-#Preview {
-    ContentView()
 }

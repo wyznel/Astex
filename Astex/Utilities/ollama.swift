@@ -6,6 +6,7 @@ import Foundation
 enum StreamChunk {
     case thinking(String)
     case content(String)
+    case toolCall(String)
 }
 
 @MainActor
@@ -44,10 +45,10 @@ class LLM {
                 "DNS Help"
                 DNS Help!
                 
-                Example Valid output exampls:
+                Example Valid output examples:
                 DNS Help
                 Project Astex Debugging
-                """, isThinking: false)
+                """, isThinking: false, isAToolCall: false)
             
             var sorted = previousMessages.sorted { $0.createdAt < $1.createdAt }
             sorted.append(promptForTitleGen)
@@ -72,41 +73,117 @@ class LLM {
     
     //MARK: - Generate with Streaming
     
-    func generateStream(_ previousMessages: [Message]) -> AsyncThrowingStream<StreamChunk, Error> {
+    func generateStream(
+        _ previousMessages: [Message],
+        fileContext: String? = nil,
+        toolRegistry: ToolRegistry? = nil
+    ) -> AsyncThrowingStream<StreamChunk, Error> {
         return AsyncThrowingStream<StreamChunk, Error> { continuation in
-            
+
             let task = Task { @MainActor in
                 do {
                     let sorted = previousMessages.sorted { $0.createdAt < $1.createdAt }
-                    let messageHistory = sorted.map { message -> Ollama.Chat.Message in
+                    var messageHistory = sorted.map { message -> Ollama.Chat.Message in
                         if message.isUser {
                             return .user(message.response)
                         } else if !message.isThinking {
                             return .assistant(message.response)
-                        }else{
+                        } else {
                             return .assistant("")
                         }
                     }
-                    
-                    
-                    let stream = try client.chatStream(
-                        model: "\(Settings.shared.selectedModel)",
-                        messages: messageHistory,
-                        think: await client.supportsThinking(model: Settings.shared.selectedModel),
-                        keepAlive: .minutes(5)
-                    )
-                    
-                    for try await chunk in stream {
-                        try Task.checkCancellation()
-                        
-                        if let thinking = chunk.message.thinking, !thinking.isEmpty {
-                            continuation.yield(.thinking(thinking))
-                        }
-                        
-                        if !chunk.message.content.isEmpty {
-                            continuation.yield(.content(chunk.message.content))
+                    messageHistory.insert(.system(
+                        """
+                        Do not call any tools unless necessary.
+                        Do not over explain or provide irrelevant information.
+                        If making a tool call, once complete, explain what you did.
+                        """),
+                        at: 0)
+                    // Inject uploaded file contents into the last user message
+                    if let fileContext {
+                        if let lastIndex = messageHistory.lastIndex(where: { $0.role == .user }) {
+                            let original = messageHistory[lastIndex].content
+                            messageHistory[lastIndex] = .user(
+                                """
+                                The user has attached the following files:
+
+                                \(fileContext)
+
+                                User message:
+                                \(original)
+                                """
+                            )
                         }
                     }
+
+                    // Determine tool capability once before the loop
+                    let supportsTools = await client.supportsTools(
+                        model: Settings.shared.selectedModel
+                    )
+                    let activeToolProtocols: [any ToolProtocol]? = (supportsTools && toolRegistry != nil && !(toolRegistry!.isEmpty))
+                        ? toolRegistry!.allToolProtocols : nil
+
+                    // Tool-call loop: capped at 5 rounds to prevent runaway execution.
+                    // Each iteration sends the current message history to the model.
+                    // If the model responds with tool calls, the tools are executed via
+                    // the registry and their results are appended before the next round.
+                    var remainingRounds = 5
+                    while remainingRounds > 0 {
+                        remainingRounds -= 1
+
+                        let stream = try client.chatStream(
+                            model: "\(Settings.shared.selectedModel)",
+                            messages: messageHistory,
+                            tools: activeToolProtocols,
+                            think: await client.supportsThinking(
+                                model: Settings.shared.selectedModel
+                            ),
+                            keepAlive: .minutes(5)
+                        )
+
+                        var pendingToolCalls: [Ollama.Chat.Message.ToolCall] = []
+
+                        for try await chunk in stream {
+                            try Task.checkCancellation()
+
+                            // Accumulate tool calls -- these arrive in the stream
+                            // rather than in a single final chunk
+                            if let calls = chunk.message.toolCalls, !calls.isEmpty {
+                                pendingToolCalls.append(contentsOf: calls)
+                            }
+
+                            if let thinking = chunk.message.thinking, !thinking.isEmpty {
+                                continuation.yield(.thinking(thinking))
+                            }
+
+                            if !chunk.message.content.isEmpty {
+                                continuation.yield(.content(chunk.message.content))
+                            }
+                        }
+
+                        // No tool calls in this round means the model has finished
+                        if pendingToolCalls.isEmpty { break }
+
+                        // Append the assistant's tool-call message to the history
+                        messageHistory.append(
+                            .assistant("", toolCalls: pendingToolCalls)
+                        )
+
+                        // Execute each tool via the registry (fully generic -- no
+                        // specific tool types referenced here) and feed results back
+                        for call in pendingToolCalls {
+                            guard let registry = toolRegistry else { break }
+                            let result = try await registry.execute(
+                                name: call.function.name,
+                                arguments: call.function.arguments
+                            )
+                            messageHistory.append(.tool(result))
+                            continuation.yield(.toolCall(
+                                "\n> Tool `\(call.function.name)` executed.\n"
+                            ))
+                        }
+                    }
+
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
@@ -157,17 +234,26 @@ extension Ollama.Client {
 
 // MARK: - Add supportsThinking() to Client.
 extension Ollama.Client {
-    
     func supportsThinking(model: String) async -> Bool {
         do {
             let modelInfo = try await self.showModel("\(model)")
-            
             return modelInfo.capabilities.contains(.thinking)
-        }catch {
+        } catch {
             print(error)
         }
         return false
     }
-    
-    
+}
+
+// MARK: - Add supportsTools() to Client.
+extension Ollama.Client {
+    func supportsTools(model: String) async -> Bool {
+        do {
+            let modelInfo = try await self.showModel("\(model)")
+            return modelInfo.capabilities.contains(.tools)
+        } catch {
+            print(error)
+        }
+        return false
+    }
 }
