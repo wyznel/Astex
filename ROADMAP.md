@@ -9,7 +9,11 @@
     - [ ] Show available models from all providers
     - [X] Delete models
     - [X] Unload models from memory.
-- [ ] Update chat interface.
-    - [ ] Allow uploads of files.
+- [X] Update chat interface.
+    - [X] Allow uploads of files.
     - [X] Fix chat scroll resetting to top when sending a chat.
-- [ ] Add more customisation.
+- [ ] Onboarding menu
+- [ ] Tools
+  - [ ] Add basic tools
+  - [ ] Add ability to connect external MCPs
+- [ ] Add customisation
