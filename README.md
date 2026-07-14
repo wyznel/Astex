@@ -5,11 +5,10 @@ Astex is a native macOS app designed to provide a modern chat interface for inte
 ## Features
 
 - **Local AI Execution:** Interacts directly with Ollama to run models locally, ensuring complete privacy and offline capabilities.
-- **Modern macOS Interface:** Features a responsive, glassmorphic design that integrates smoothly with macOS aesthetics.
 - **Persistent Chat History:** Automatically saves your conversations and message history using SwiftData.
 - **Smart Chat Titles:** Automatically generates contextual titles for your chats based on the ongoing conversation.
-- **Appearance Settings:** Fully supports system-wide Light and Dark modes.
-
+- **Chat History:** Saves all chats locally for future access.
+- **Completely Offline:** Astex doesn't require an internet connection, so long as you already have a model installed!
 ## Requirements
 
 - macOS 26+
