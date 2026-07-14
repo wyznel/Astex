@@ -12,7 +12,7 @@
 - [X] Update chat interface.
     - [X] Allow uploads of files.
     - [X] Fix chat scroll resetting to top when sending a chat.
-- [ ] Onboarding menu
+- [X] Onboarding menu
 - [ ] Tools
   - [ ] Add basic tools
   - [ ] Add ability to connect external MCPs
