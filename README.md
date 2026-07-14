@@ -12,7 +12,7 @@ Astex is a native macOS app designed to provide a modern chat interface for inte
 
 ## Requirements
 
-- macOS (Requires a version supporting recent SwiftUI and SwiftData features).
+- macOS 26+
 - [Ollama](https://ollama.ai) installed and running locally on your system.
 
 ## Installation and Setup
