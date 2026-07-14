@@ -49,65 +49,70 @@ struct ContentView: View {
     ])
 
     var body: some View {
-        NavigationSplitView {
-            ChatActionHandling(
-             onNewChat: {
-                 generationTask?.cancel()
-                 generationTask = nil
-                 isAResponseGenerating = false
-                 withAni {
+        if !settings.isFirstOpen {
+            NavigationSplitView {
+                ChatActionHandling(
+                 onNewChat: {
+                     generationTask?.cancel()
+                     generationTask = nil
+                     isAResponseGenerating = false
+                     withAni {
+                         settings.settingsOpened = false
+                         activeChat = nil
+                     }
+                     streamingChunks = []
+                     thinkingStreamingChunks = []
+                     chatWindowEmpty = true
+                 },
+                 onSelectChat: { chat in
                      settings.settingsOpened = false
-                     activeChat = nil
-                 }
-                 streamingChunks = []
-                 thinkingStreamingChunks = []
-                 chatWindowEmpty = true
-             },
-             onSelectChat: { chat in
-                 settings.settingsOpened = false
-                 generationTask?.cancel()
-                 generationTask = nil
-                 isAResponseGenerating = false
-                 streamingChunks = []
-                 thinkingStreamingChunks = []
-                 withAni {
-                     activeChat = chat
-                     chatWindowEmpty = false
-                 }
-             },
-             onDeleteChat: { chat in
-                 if chat == activeChat {
                      generationTask?.cancel()
                      generationTask = nil
                      isAResponseGenerating = false
                      streamingChunks = []
                      thinkingStreamingChunks = []
-                     withAni(doubled: true) {
-                         activeChat = nil
-                         chatWindowEmpty = true
+                     withAni {
+                         activeChat = chat
+                         chatWindowEmpty = false
                      }
-                 }
-                 modelContext.delete(chat)
-             },
-             getNewTitle: { chat in
-                 Task {
-                     let newTitle = await llm.generateTitle(chat.messages)
-                     chat.title = newTitle
-                     chat.titleHasBeenGenerated = true
-                 }
+                 },
+                 onDeleteChat: { chat in
+                     if chat == activeChat {
+                         generationTask?.cancel()
+                         generationTask = nil
+                         isAResponseGenerating = false
+                         streamingChunks = []
+                         thinkingStreamingChunks = []
+                         withAni(doubled: true) {
+                             activeChat = nil
+                             chatWindowEmpty = true
+                         }
+                     }
+                     modelContext.delete(chat)
+                 },
+                 getNewTitle: { chat in
+                     Task {
+                         let newTitle = await llm.generateTitle(chat.messages)
+                         chat.title = newTitle
+                         chat.titleHasBeenGenerated = true
+                     }
+                }
+                )
+                .frame(minWidth: 180, maxWidth: 320)
+                .navigationSplitViewColumnWidth(min: 180, ideal: 240, max: 320)
+                .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+            } detail: {
+                if(!settings.settingsOpened) {
+                    mainBody()
+                }else{
+                    SettingsView()
+                }
             }
-            )
-            .frame(minWidth: 180, maxWidth: 320)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 240, max: 320)
-            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-        } detail: {
-            if(!settings.settingsOpened) {
-                mainBody()
-            }else{
-                SettingsView()
-            }
+            .navigationSplitViewStyle(.balanced)
+        } else {
+            OnboardingView()
+                .windowResizeBehavior(.disabled)
         }
-        .navigationSplitViewStyle(.balanced)
     }
  
     @ViewBuilder

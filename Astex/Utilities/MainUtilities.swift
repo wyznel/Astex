@@ -97,8 +97,28 @@ class Utilities {
 
 // MARK: - Cleaner ```withAnimation```.
 
-func withAni(doubled: Bool = false, _ event: () -> Void) {
-    withAnimation(.spring(duration: Settings.shared.animationDelay * (doubled ? 2 : 1))) {
+func withAni(doubled: Bool = false, customDuration: Double = 0 ,_ event: () -> Void) {
+    withAnimation(.spring(duration: customDuration == 0 ? Settings.shared.animationDelay * (doubled ? 2 : 1) : customDuration)) {
         event()
     }
+}
+
+
+// MARK: - Check if Ollama installed
+
+func isOllamaInstalled() -> Bool {
+    do{
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/ollama")
+        process.arguments = ["--version"]
+        process.standardOutput = nil
+        process.standardError = nil
+        process.standardInput = nil
+        try process.run()
+        process.waitUntilExit()
+        return process.terminationStatus == 0
+    }catch {
+        print(error)
+    }
+    return false
 }

@@ -32,9 +32,9 @@ struct AstexApp: App {
                 .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
                 .tint(.sepiaAccent)
         }
-        .commands {
-            // Populate here.
-        }
+//        .commands {
+//            // Populate here.
+//        }
         .modelContainer(sharedModelContainer)
     }
 }
