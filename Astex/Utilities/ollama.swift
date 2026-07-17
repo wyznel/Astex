@@ -99,6 +99,8 @@ class LLM {
                         If making a tool call, once complete, explain what you did.
                         """),
                         at: 0)
+                    
+                    print(messageHistory)
                     // Inject uploaded file contents into the last user message
                     if let fileContext {
                         if let lastIndex = messageHistory.lastIndex(where: { $0.role == .user }) {
@@ -196,15 +198,14 @@ class LLM {
 
         }
     }
+    
 }
 
 // MARK: - Extend Ollama Client with model utilities
 
 extension Ollama.Client {
 
-    /// Unloads a model using the ollama CLI.
-    /// Uses a Process argument array instead of shell interpolation to
-    /// prevent command injection via model names.
+    /// Unloads a model. API doesn't provide any native way to do this.
     func unloadModel(model: String) -> Bool {
         do {
             let process = Process()

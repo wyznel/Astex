@@ -12,6 +12,7 @@ struct HoverHelpMenu<HoverContent: View>: ViewModifier {
     
     let delay: Double
     let alignment: Alignment
+    let offsetX: Double
     let hoverContent: () -> HoverContent
     
     func body(content: Content) -> some View {
@@ -42,7 +43,7 @@ struct HoverHelpMenu<HoverContent: View>: ViewModifier {
                         .clipShape(RoundedRectangle(cornerRadius: 6))
                         .shadow(radius: 4)
                         .offset(y: 0)
-                        .offset(x: +60)
+                        .offset(x: +60+offsetX)
                         .transition(.opacity.combined(with: .scale))
                 }
             }
@@ -54,8 +55,9 @@ extension View {
     func hoverHelpMenu<Content: View>(
         delay: Double = 0.6,
         alignment: Alignment = .top,
+        offsetX: Double = 0,
         @ViewBuilder content: @escaping () -> Content
     ) -> some View {
-        modifier(HoverHelpMenu(delay: delay, alignment: alignment, hoverContent: content))
+        modifier(HoverHelpMenu(delay: delay, alignment: alignment, offsetX: offsetX,hoverContent: content))
     }
 }

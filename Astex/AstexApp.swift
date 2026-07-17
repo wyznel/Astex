@@ -15,6 +15,7 @@ struct AstexApp: App {
             Chat.self,
             Message.self
         ])
+
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {

@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		B5396DD22FE0B03D000B81FD /* Ollama in Frameworks */ = {isa = PBXBuildFile; productRef = B5396DD12FE0B03D000B81FD /* Ollama */; };
 		B5396DD52FE0B03D000B81FD /* Textual in Frameworks */ = {isa = PBXBuildFile; productRef = B5396DD42FE0B03D000B81FD /* Textual */; };
-		B5A1F0012FE2000000000001 /* RapidMLX in Frameworks */ = {isa = PBXBuildFile; productRef = B5A1F0002FE2000000000001 /* RapidMLX */; };
 		B5CD49FC2FE1FFFA00FAC142 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = B5CD49FB2FE1FFF500FAC142 /* .gitignore */; };
 /* End PBXBuildFile section */
 
@@ -33,7 +32,6 @@
 			files = (
 				B5396DD22FE0B03D000B81FD /* Ollama in Frameworks */,
 				B5396DD52FE0B03D000B81FD /* Textual in Frameworks */,
-				B5A1F0012FE2000000000001 /* RapidMLX in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,7 +77,6 @@
 			packageProductDependencies = (
 				B5396DD12FE0B03D000B81FD /* Ollama */,
 				B5396DD42FE0B03D000B81FD /* Textual */,
-				B5A1F0002FE2000000000001 /* RapidMLX */,
 			);
 			productName = Astex;
 			productReference = B5396DB32FE0B03C000B81FD /* Astex.app */;
@@ -112,7 +109,6 @@
 			packageReferences = (
 				B5396DD02FE0B03D000B81FD /* XCRemoteSwiftPackageReference "ollama-swift" */,
 				B5396DD32FE0B03D000B81FD /* XCRemoteSwiftPackageReference "textual" */,
-				B5A1F0022FE2000000000001 /* XCRemoteSwiftPackageReference "rapid-mlx-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B5396DB42FE0B03C000B81FD /* Products */;
@@ -275,6 +271,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -320,6 +317,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -386,10 +384,10 @@
 /* Begin XCRemoteSwiftPackageReference section */
 		B5396DD02FE0B03D000B81FD /* XCRemoteSwiftPackageReference "ollama-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/mattt/ollama-swift.git";
+			repositoryURL = "https://github.com/wyznel/ollama-swift.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.8.0;
+				branch = main;
+				kind = branch;
 			};
 		};
 		B5396DD32FE0B03D000B81FD /* XCRemoteSwiftPackageReference "textual" */ = {
@@ -398,14 +396,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 0.1.0;
-			};
-		};
-		B5A1F0022FE2000000000001 /* XCRemoteSwiftPackageReference "rapid-mlx-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/wyznel/rapid-mlx-swift.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -420,11 +410,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B5396DD32FE0B03D000B81FD /* XCRemoteSwiftPackageReference "textual" */;
 			productName = Textual;
-		};
-		B5A1F0002FE2000000000001 /* RapidMLX */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B5A1F0022FE2000000000001 /* XCRemoteSwiftPackageReference "rapid-mlx-swift" */;
-			productName = RapidMLX;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

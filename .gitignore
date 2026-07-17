@@ -19,7 +19,6 @@ build/
 # Swift Package Manager
 .build/
 .swiftpm/
-*.resolved
 
 # Xcode Previews
 PreviewsXPC/

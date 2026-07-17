@@ -51,114 +51,143 @@ struct ModelManagementView: View {
     static var utilities = Utilities()
 
     @ObservedObject private var settings = Settings.shared
-
     @State private var models: [String] = []
-
     @State private var selectedModel: String? = Settings.shared.selectedModel
-    
     @State private var hasModelTableAppeared: Bool = false
+    
+    @State private var showTextInput: Bool = false
+    
     /// Visible columns derived from current settings.
     private var visibleColumns: [ColumnDescriptor] {
         Self.allColumns.filter { $0.isVisible(settings) }
     }
-
-    // MARK: Body
     
     @State private var successfullyUnloadedModels: Bool = false
+    // MARK: Body
     
     var body: some View {
-        VStack {
-            HStack {
-                InlineText(markdown: "**Models**")
-                    .padding(6)
-                    .frame(alignment: .leading)
-                Spacer()
-                
-                //TODO: - IMPLEMENT REFRESHING FOR MODELS.
-                
-                Refresh {
-                    print("Refresh models list.")
-                }
-                UnloadAllModelsButton()
-            }
-            .frame(maxWidth: 600)
-///          Model List
-            VStack(alignment: .leading) {
-                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 0) {
-                    // Header row
-                    GridRow {
-                        Text("Model Name")
-                            .gridColumnAlignment(.leading)
-
-                        ForEach(visibleColumns) { column in
-                            Text(column.header)
-                                .gridColumnAlignment(.leading)
+        ZStack {
+            VStack {
+                HStack {
+                    InlineText(markdown: "**Models**")
+                        .padding(6)
+                        .frame(alignment: .leading)
+                    Spacer()
+                    
+                    PullModelButton(showTextInput: $showTextInput)
+                    //TODO: - IMPLEMENT REFRESHING FOR MODELS.
+                    Refresh {
+                        Task {
+                            await refreshAvailableModels()
                         }
-
-                        // Invisible trash icon to reserve the action column width
-                        Image(systemName: "trash")
-                            .opacity(0)
                     }
-                    .padding(.vertical, 4)
+                    UnloadAllModelsButton()
+                }
+                .frame(maxWidth: 600)
+                ///          Model List
+                VStack(alignment: .leading) {
+                    Grid(
+                        alignment: .leading,
+                        horizontalSpacing: 12,
+                        verticalSpacing: 0
+                    ) {
+                        // Header row
+                        GridRow {
+                            Text("Model Name")
+                                .gridColumnAlignment(.leading)
 
-                    Divider()
-
-                    // Data rows
-                    ForEach(models, id: \.self) { model in
-                        ModelDetailsRow(
-                            model: model,
-                            selectedModel: $selectedModel,
-                            visibleColumns: visibleColumns,
-                            onDelete: {
-                                withAni {
-                                    models.removeAll { $0 == model }
-                                }
+                            ForEach(visibleColumns) { column in
+                                Text(column.header)
+                                    .gridColumnAlignment(.leading)
                             }
-                        )
+
+                            // Invisible trash icon to reserve the action column width
+                            Image(systemName: "trash")
+                                .opacity(0)
+                        }
+                        .padding(.vertical, 4)
+
                         Divider()
+
+                        // Data rows
+                        ForEach(models, id: \.self) { model in
+                            ModelDetailsRow(
+                                model: model,
+                                selectedModel: $selectedModel,
+                                visibleColumns: visibleColumns,
+                                onDelete: {
+                                    withAni {
+                                        models.removeAll { $0 == model }
+                                    }
+                                }
+                            )
+                            Divider()
+                        }
+                    }
+                    .padding(.leading, 12)
+                }
+                .padding(.top, 15)
+                .padding(.bottom, 15)
+                .padding(.leading, 10)
+                .padding(.trailing, 10)
+                .frame(maxWidth: 600)
+                .glassEffect(
+                    settings.glassEffect.interactive(),
+                    in: .rect(cornerRadius: 12)
+                )
+                .onChange(of: selectedModel) {
+                    Settings.shared.selectedModel = selectedModel ?? ""
+                    print("Selected Model: \(Settings.shared.selectedModel)")
+                }
+            }
+            .blur(radius: showTextInput ? 5 : 0)
+            .task {
+                await refreshAvailableModels()
+            }
+            .contentShape(Rectangle())
+            .contextMenu(
+                menuItems: {
+                    Button(
+                        "Size on Disk",
+                        systemImage: settings.showSizeOnDisk ? "checkmark" : "square"
+                    ) {
+                        withAni {
+                            settings.showSizeOnDisk.toggle()
+                        }
+                    }
+
+                    Button(
+                        "Format",
+                        systemImage: settings.showFormat ? "checkmark" : "square"
+                    ) {
+                        withAni {
+                            settings.showFormat.toggle()
+                        }
+                    }
+                    Button(
+                        "Parameter Size",
+                        systemImage: settings.showParameterSize ? "checkmark" : "square"
+                    ) {
+                        withAni{
+                            settings.showParameterSize.toggle()
+                        }
+                    }
+                })
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+
+            if showTextInput {
+                ModelInputCard(showTextInput: $showTextInput) {
+                    Task {
+                        models = await ModelManagementView.utilities.getAvailableModelsNAME_ONLY_OLLAMA()
                     }
                 }
-                .padding(.leading, 12)
-            }
-            .padding(.top, 15)
-            .padding(.bottom, 15)
-            .padding(.leading, 10)
-            .padding(.trailing, 10)
-            .frame(maxWidth: 600)
-            .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 12))
-            .onChange(of: selectedModel) {
-                Settings.shared.selectedModel = selectedModel ?? ""
-                print("Selected Model: \(Settings.shared.selectedModel)")
             }
         }
-        .task {
-            models = await ModelManagementView.utilities.getAvailableModelsNAME_ONLY_OLLAMA()
-        }
-        .contentShape(Rectangle())
-        .contextMenu(menuItems: {
-            Button("Size on Disk", systemImage: settings.showSizeOnDisk ? "checkmark" : "square") {
-                withAni {
-                    settings.showSizeOnDisk.toggle()
-                }
-            }
-
-            Button("Format", systemImage: settings.showFormat ? "checkmark" : "square") {
-                withAni {
-                    settings.showFormat.toggle()
-                }
-            }
-            Button("Parameter Size", systemImage: settings.showParameterSize ? "checkmark" : "square") {
-                withAni{
-                    settings.showParameterSize.toggle()
-                }
-            }
-        })
     }
-
-
+    
     // MARK: - ModelDetailsRow
 
-///  Combines ModelToggle and model info columns in a single GridRow.
+    ///  Combines ModelToggle and model info columns in a single GridRow.
     struct ModelDetailsRow: View {
         let model: String
         
@@ -170,7 +199,12 @@ struct ModelManagementView: View {
 
         @State private var rowData: ModelRowData
 
-        init(model: String, selectedModel: Binding<String?>, visibleColumns: [ColumnDescriptor], onDelete: @escaping () -> Void) {
+        init(
+            model: String,
+            selectedModel: Binding<String?>,
+            visibleColumns: [ColumnDescriptor],
+            onDelete: @escaping () -> Void
+        ) {
             self.model = model
             self._selectedModel = selectedModel
             self.visibleColumns = visibleColumns
@@ -220,7 +254,7 @@ struct ModelManagementView: View {
     
     // MARK: - ModelDeleteButton
 
-/// Delete model button, extracted for clarity.
+    /// Delete model button
     struct ModelDeleteButton: View {
         let modelName: String
         let isDisabled: Bool
@@ -239,14 +273,20 @@ struct ModelManagementView: View {
                     isPresentingConfirm = true
                 } else {
                     Task {
-                        let modelID: Model.ID = Model.ID(rawValue: modelName)!
-                        if try await client.deleteModel(modelID) {
-                            successInDeletionOfModel = true
-                            onDelete?()
-                        }else {
-                            successInDeletionOfModel = false
+                        do {
+                            let modelID: Model.ID = Model.ID(
+                                rawValue: modelName
+                            )!
+                            if try await client.deleteModel(modelID) {
+                                successInDeletionOfModel = true
+                                onDelete?()
+                            }else {
+                                successInDeletionOfModel = false
+                            }
+                            showModelDeletionAlert = true
+                        } catch {
+                            print(error)
                         }
-                        showModelDeletionAlert = true
                     }
                 }
             } label: {
@@ -257,22 +297,31 @@ struct ModelManagementView: View {
                     .fixedSize()
             }
             .disabled(isDisabled)
-            .confirmationDialog("Are you sure?", isPresented: $isPresentingConfirm) {
+            .confirmationDialog(
+                "Are you sure?",
+                isPresented: $isPresentingConfirm
+            ) {
                 Button("Delete model: \(modelName)", role: .destructive) {
                     Task {
-                        let modelID = Model.ID(rawValue: modelName)
-                        if try await client.deleteModel(modelID!) {
-                            successInDeletionOfModel = true
-                            onDelete?()
-                        }else {
-                            successInDeletionOfModel = false
+                        do {
+                            let modelID = Model.ID(rawValue: modelName)
+                            if try await client.deleteModel(modelID!) {
+                                successInDeletionOfModel = true
+                                onDelete?()
+                            }else {
+                                successInDeletionOfModel = false
+                            }
+                            showModelDeletionAlert = true
+                        } catch {
+                            print(error)
                         }
-                        showModelDeletionAlert = true
                     }
                 }
             }
             .dialogIcon(Image(systemName: "trash.circle.fill"))
-            .dialogSuppressionToggle(isSuppressed: settings.$suppressModelDeletionConfirmation)
+            .dialogSuppressionToggle(
+                isSuppressed: settings.$suppressModelDeletionConfirmation
+            )
             .alert(isPresented: $showModelDeletionAlert) {
                 Alert(title: Text(successInDeletionOfModel ?
                                   "Successfully deleted model: \(modelName)" :
@@ -289,7 +338,7 @@ struct ModelManagementView: View {
 
     // MARK: - ModelToggle
 
-/// Each model must have its own toggle (bars).
+    /// Each model must have its own toggle (bars).
     struct ModelToggle: View {
         let modelName: String
 
@@ -346,7 +395,7 @@ struct ModelManagementView: View {
         
         @State private var selectedText: ButtonText = .unload
         
-//        private let buttonText: [String] = ["Unload All Models", "No Models Loaded", "Successfully Unloaded All Models"]
+        //        private let buttonText: [String] = ["Unload All Models", "No Models Loaded", "Successfully Unloaded All Models"]
         
         var body: some View {
             Button {
@@ -423,5 +472,214 @@ struct ModelManagementView: View {
                 Text("Unload Model")
             }
         }
+    }
+    
+    // MARK: - Pull model
+    
+    struct PullModelButton: View {
+        
+        @Binding var showTextInput: Bool
+        
+        var body: some View {
+            Button {
+                withAni {
+                    showTextInput = true
+                }
+            }label: {
+                Image(systemName: "plus")
+            }
+            .hoverHelpMenu(delay: 1.0, offsetX: 40) {
+                Text("Pull Model from Ollama")
+            }
+        }
+    }
+    
+    // MARK: - Model Input Card
+    struct ModelInputCard: View {
+        
+        @Binding var showTextInput: Bool
+        
+        var onDone: () -> Void
+        
+        @State private var modelName = ""
+        
+        @State private var progressText: String = ""
+        
+        @State private var errorMessage: String?
+        @State private var downloadInProgress: Bool = false
+        @State private var isSuccess: Bool = false
+        
+        @State private var progress: Double = 0
+        @State private var model_hash: String = ""
+        @State private var temp_hash: String = ""
+        @State private var temp_count: Int = 1
+        @State private var appeared: Bool = false
+
+        
+        var body: some View {
+            VStack(spacing: 16) {
+                // Header area with icon and close button
+                ZStack(alignment: .topTrailing) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .font(.system(size: 36, weight: .medium))
+                            .foregroundStyle(Color.sepiaAccent)
+                            .shadow(color: Color.sepiaAccent.opacity(0.3), radius: 8, y: 2)
+                        
+                        Text("Pull Model")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(Color.sepiaText)
+                        
+                        Text("Download a model from the Ollama library")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Color.sepiaText.opacity(0.5))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 4)
+
+                    Button {
+                        withAni {
+                            showTextInput = false
+                        }
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Color.sepiaText.opacity(0.4))
+                            .frame(width: 22, height: 22)
+                            .glassEffect(Settings.shared.glassEffect, in: .circle)
+                    }
+                    .buttonStyle(.plain)
+                }
+                
+                HStack(spacing: 8) {
+                    TextField("e.g. llama3.2:3b", text: $modelName)
+                        .textFieldStyle(.plain)
+                        .disableAutocorrection(true)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 7)
+                        .glassEffect(Settings.shared.glassEffect, in: .capsule)
+                        .disabled(downloadInProgress)
+                    
+                    Button {
+                        Task {
+                            do {
+                                for try await prog in client.pullModelStream("\(modelName)") {
+                                    if temp_count == 2 && model_hash.isEmpty {
+                                        model_hash = prog.status
+                                        progressText = modelName
+                                    }
+                                    
+                                    temp_hash = prog.status
+                                    if temp_count < 2 {
+                                        temp_count += 1
+                                    }
+                                    
+                                    if model_hash != temp_hash {
+                                        progressText = temp_hash
+                                    }
+                                    
+                                    if progressText.contains("success") {
+                                        isSuccess = true
+                                    }
+                                    
+                                    if let total = prog.total, let completed = prog.completed {
+                                        progress = Double(completed) / Double(total) * 100
+                                    }
+                                }
+                            } catch {
+                                print(error)
+                            }
+                        }
+                        
+                        withAni {
+                            downloadInProgress = true
+                        }
+                    } label: {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(
+                                modelName.isEmpty
+                                    ? Color.sepiaText.opacity(0.2)
+                                    : Color.sepiaAccent
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(modelName.isEmpty)
+                }
+                
+                // Error message
+                if let error = errorMessage {
+                    Text(error)
+                        .foregroundStyle(.red)
+                        .font(.caption)
+                }
+                
+                // Download progress
+                if downloadInProgress && !isSuccess {
+                    VStack(spacing: 6) {
+                        ProgressView(value: progress, total: 100)
+                            .tint(Color.sepiaAccent)
+                        
+                        HStack {
+                            Text(progressText)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(Color.sepiaText.opacity(0.7))
+                                .lineLimit(1)
+                            
+                            Spacer()
+                            
+                            Text("\(Int(progress))%")
+                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(Color.sepiaAccent)
+                        }
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+                
+                if isSuccess {
+                    Button {
+                        withAni {
+                            downloadInProgress = false
+                            showTextInput = false
+                        }
+                        Task {
+                            onDone()
+                        }
+                    }label: {
+                        Text("Done")
+                    }
+                    .task {
+                        withAni {
+                            downloadInProgress = false
+                        }
+                    }
+                }
+            }
+            .padding(20)
+            .frame(width: 320)
+            .glassEffect(Settings.shared.glassEffect, in: .rect(cornerRadius: 18))
+            .shadow(color: .black.opacity(0.15), radius: 20, y: 8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .scaleEffect(appeared ? 1 : 0.92)
+            .opacity(appeared ? 1 : 0)
+            .onAppear {
+                withAni {
+                    appeared = true
+                }
+            }
+            .onKeyPress(keys: [.escape], phases: .down) { keyPress in
+                withAni {
+                    showTextInput = false
+                }
+                
+                return .handled
+            }
+        }
+    }
+    
+    // MARK: - Refresh Models List
+    
+    func refreshAvailableModels() async {
+        models = await ModelManagementView.utilities.getAvailableModelsNAME_ONLY_OLLAMA()
     }
 }

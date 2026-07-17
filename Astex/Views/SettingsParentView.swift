@@ -12,23 +12,35 @@ import Textual
 struct SettingsView: View {
     private var settings = Settings.shared
     @State private var selectedTab = 1
-
     var body: some View {
         VStack {
             HStack(spacing: 20) {
-                TabButton(icon: "arrowshape.turn.up.backward", opacity: 0.125) {
+                TabButton(icon: "arrowshape.turn.up.backward", opacity: 0.125, pageID: 0, selectedTab: $selectedTab) {
                     withAni(doubled: true) {
                         settings.settingsOpened = false
                     }
                 }
+                
                 HStack(spacing: 0) {
-                    TabButton(icon: "server.rack", opacity: 0.0625, shape: Rectangle())
+                    TabButton(
+                        icon: "server.rack",
+                        opacity: 0.0625,
+                        shape: Rectangle(),
+                        pageID: 1,
+                        selectedTab: $selectedTab
+                    )
                     {
                         withAni(doubled: true){
                             selectedTab = 1
                         }
                     }
-                    TabButton(icon: "gearshape", opacity: 0.0625, shape: Rectangle())
+                    TabButton(
+                        icon: "gearshape",
+                        opacity: 0.0625,
+                        shape: Rectangle(),
+                        pageID: 2,
+                        selectedTab: $selectedTab
+                    )
                     {
                         withAni(doubled: true){
                             selectedTab = 2
@@ -37,7 +49,9 @@ struct SettingsView: View {
                     TabButton(
                         icon: "pencil",
                         opacity: 0.0625,
-                        shape: Rectangle()
+                        shape: Rectangle(),
+                        pageID: 3,
+                        selectedTab: $selectedTab
                     ) {
                         withAni(doubled: true){
                             selectedTab = 3
@@ -54,7 +68,7 @@ struct SettingsView: View {
                 case 1:
                     ModelManagementView()
                 case 2:
-                    Text("Settings")
+                    SettingsTabView()
                 case 3:
                     appearance()
                 default:
@@ -62,6 +76,7 @@ struct SettingsView: View {
             }
             Spacer()
         }
+
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.sepiaBackground)
 
@@ -77,17 +92,24 @@ struct SettingsView: View {
         let opacity: Double
         var shape: AnyShape
         let action: () -> Void
-
+        let pageID: Int
+        
+        @Binding var selectedTab: Int
+        
         init(
             icon: String,
             opacity: Double,
             shape: some Shape = Capsule(),
+            pageID: Int,
+            selectedTab: Binding<Int>,
             action: @escaping () -> Void
         ) {
             self.icon = icon
             self.shape = AnyShape(shape)
             self.action = action
             self.opacity = opacity
+            self.pageID = pageID
+            self._selectedTab = selectedTab
         }
 
         @State private var hovered: Bool = false
@@ -102,9 +124,9 @@ struct SettingsView: View {
                     .contentShape(shape)
             }
             .glassEffect(
-                hovered
-                    ? .regular.tint(Color.sepiaAccent.opacity(0.3))
-                    : .regular.tint(Color.sepiaAccent.opacity(opacity)),
+                hovered || selectedTab == pageID ? .
+                    regular.tint(Color.sepiaAccent.opacity(0.3)) :
+                    .regular.tint(Color.sepiaAccent.opacity(opacity)),
                 in: shape
             )
             .animation(.spring(duration: 0.25), value: hovered)

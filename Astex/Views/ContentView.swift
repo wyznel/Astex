@@ -59,6 +59,9 @@ struct ContentView: View {
                      withAni {
                          settings.settingsOpened = false
                          activeChat = nil
+                         
+                         prompt = ""
+                         uploadedFiles = []
                      }
                      streamingChunks = []
                      thinkingStreamingChunks = []
@@ -74,6 +77,9 @@ struct ContentView: View {
                      withAni {
                          activeChat = chat
                          chatWindowEmpty = false
+                         
+                         prompt = ""
+                         uploadedFiles = []
                      }
                  },
                  onDeleteChat: { chat in
@@ -86,6 +92,9 @@ struct ContentView: View {
                          withAni(doubled: true) {
                              activeChat = nil
                              chatWindowEmpty = true
+                             
+                             prompt = ""
+                             uploadedFiles = []
                          }
                      }
                      modelContext.delete(chat)
@@ -348,13 +357,6 @@ struct ContentView: View {
         toolCallingChunks = []
         thinkingStreamingChunks = []
         
-        //Generate a title for a chat after a few messages have been sent/recieved.
-        if activeChat?.messages.count ?? 0 > 2 && !activeChat!.titleHasBeenGenerated {
-            let newTitle = await llm.generateTitle(activeChat?.messages ?? [])
-            print("Generated Title: \(newTitle)")
-            activeChat?.title = newTitle
-            activeChat?.titleHasBeenGenerated = true
-        }
     }
     
     @State private var messageHistoryIndex: Int = -1

@@ -1,0 +1,42 @@
+{
+  "originHash" : "3f376a17fe51b1898c0465d970e55657b6edc67aea64c7052552554141d996f9",
+  "pins" : [
+    {
+      "identity" : "ollama-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/wyznel/ollama-swift.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "402e27b39e42dd68f07a1333dd3428f300fa74f0"
+      }
+    },
+    {
+      "identity" : "swift-concurrency-extras",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-concurrency-extras",
+      "state" : {
+        "revision" : "a90e2e40a7a840a853dd29e57cbef5dbb72c9d5b",
+        "version" : "1.4.0"
+      }
+    },
+    {
+      "identity" : "swiftui-math",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/gonzalezreal/swiftui-math",
+      "state" : {
+        "revision" : "0b5c2cfaaec8d6193db206f675048eeb5ce95f71",
+        "version" : "0.1.0"
+      }
+    },
+    {
+      "identity" : "textual",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/gonzalezreal/textual.git",
+      "state" : {
+        "revision" : "01b51875a5406eefc95f52a058cb059e7bc94dc4",
+        "version" : "0.5.0"
+      }
+    }
+  ],
+  "version" : 3
+}

@@ -16,7 +16,6 @@ class Settings: ObservableObject {
     @AppStorage("ModelInformationShowParameterSize") var showParameterSize: Bool = true
     
     @AppStorage("SelectedModel") var selectedModel: String = "llama3.2:3b"
-    
     @AppStorage("IsFirstOpen") var isFirstOpen: Bool = true
     
     private init() {}

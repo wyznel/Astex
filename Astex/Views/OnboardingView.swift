@@ -91,7 +91,11 @@ struct OnboardingView: View {
                 
                 Button {
                     withAni {
-                        PageIndex = 2
+                        if isOllamaInstalled() {
+                            Settings.shared.isFirstOpen = false
+                        } else {
+                            PageIndex = 2
+                        }
                     }
                 }label: {
                     HStack {
@@ -141,8 +145,6 @@ struct OnboardingView: View {
                 
                 if !isOllamaInstalled() {
                     installOllamaCard(PageIndex: $PageIndex)
-                } else{
-                    ollamaAlreadyPresentCard(PageIndex: $PageIndex)
                 }
             }
             .padding(.top, 28)
