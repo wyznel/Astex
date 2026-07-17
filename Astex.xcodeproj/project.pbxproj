@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		B5396DD22FE0B03D000B81FD /* Ollama in Frameworks */ = {isa = PBXBuildFile; productRef = B5396DD12FE0B03D000B81FD /* Ollama */; };
 		B5396DD52FE0B03D000B81FD /* Textual in Frameworks */ = {isa = PBXBuildFile; productRef = B5396DD42FE0B03D000B81FD /* Textual */; };
+		B586844D300AB9230022FEE8 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = B586844C300AB9230022FEE8 /* Sparkle */; };
 		B5CD49FC2FE1FFFA00FAC142 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = B5CD49FB2FE1FFF500FAC142 /* .gitignore */; };
 /* End PBXBuildFile section */
 
@@ -17,9 +18,22 @@
 		B5CD49FB2FE1FFF500FAC142 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B586844F300ABB280022FEE8 /* Exceptions for "Astex" folder in "Astex" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B5396DB22FE0B03C000B81FD /* Astex */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B5396DB52FE0B03C000B81FD /* Astex */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B586844F300ABB280022FEE8 /* Exceptions for "Astex" folder in "Astex" target */,
+			);
 			path = Astex;
 			sourceTree = "<group>";
 		};
@@ -30,6 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B586844D300AB9230022FEE8 /* Sparkle in Frameworks */,
 				B5396DD22FE0B03D000B81FD /* Ollama in Frameworks */,
 				B5396DD52FE0B03D000B81FD /* Textual in Frameworks */,
 			);
@@ -77,6 +92,7 @@
 			packageProductDependencies = (
 				B5396DD12FE0B03D000B81FD /* Ollama */,
 				B5396DD42FE0B03D000B81FD /* Textual */,
+				B586844C300AB9230022FEE8 /* Sparkle */,
 			);
 			productName = Astex;
 			productReference = B5396DB32FE0B03C000B81FD /* Astex.app */;
@@ -109,6 +125,7 @@
 			packageReferences = (
 				B5396DD02FE0B03D000B81FD /* XCRemoteSwiftPackageReference "ollama-swift" */,
 				B5396DD32FE0B03D000B81FD /* XCRemoteSwiftPackageReference "textual" */,
+				B586844B300AB9230022FEE8 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B5396DB42FE0B03C000B81FD /* Products */;
@@ -275,7 +292,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 6CS2724T37;
 				ENABLE_APP_SANDBOX = NO;
@@ -293,13 +310,14 @@
 				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Astex/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.6;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = bherbert.Astex;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -321,7 +339,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 6CS2724T37;
 				ENABLE_APP_SANDBOX = NO;
@@ -339,13 +357,14 @@
 				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Astex/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.6;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = bherbert.Astex;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -398,6 +417,14 @@
 				minimumVersion = 0.1.0;
 			};
 		};
+		B586844B300AB9230022FEE8 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.9.4;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -410,6 +437,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B5396DD32FE0B03D000B81FD /* XCRemoteSwiftPackageReference "textual" */;
 			productName = Textual;
+		};
+		B586844C300AB9230022FEE8 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B586844B300AB9230022FEE8 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

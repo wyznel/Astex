@@ -1,5 +1,5 @@
 {
-  "originHash" : "3f376a17fe51b1898c0465d970e55657b6edc67aea64c7052552554141d996f9",
+  "originHash" : "89b7713cfea65750a0488c51c967d1c1ceaf8d6dc40eb5d82c0d671684842bd4",
   "pins" : [
     {
       "identity" : "ollama-swift",
@@ -8,6 +8,15 @@
       "state" : {
         "branch" : "main",
         "revision" : "402e27b39e42dd68f07a1333dd3428f300fa74f0"
+      }
+    },
+    {
+      "identity" : "sparkle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sparkle-project/Sparkle",
+      "state" : {
+        "revision" : "b6496a74a087257ef5e6da1c5b29a447a60f5bd7",
+        "version" : "2.9.4"
       }
     },
     {

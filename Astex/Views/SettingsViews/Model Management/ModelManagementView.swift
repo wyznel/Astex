@@ -69,7 +69,7 @@ struct ModelManagementView: View {
         ZStack {
             VStack {
                 HStack {
-                    InlineText(markdown: "**Models**")
+                    InlineText(markdown: "**Models (Ollama)**")
                         .padding(6)
                         .frame(alignment: .leading)
                     Spacer()
