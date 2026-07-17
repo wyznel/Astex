@@ -15,7 +15,7 @@
       <sparkle:version>2</sparkle:version>
       <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
       <enclosure
-        url="https://github.com/wyznel/Astex/releases/download/v0.1.0/Astex.dmg"
+        url="https://github.com/wyznel/Astex/releases/download/v0.1.1/Astex.dmg"
         length="15078022"
         type="application/octet-stream"
         sparkle:edSignature="s1qkwXcHq1r29OO2BNRJnXKEA1Vqc7fqhkLtk6ZrxInb5fjKvgfbKk72KkxMKCXfNe8USPXmBz6DCxtjK/r3DA==" />
