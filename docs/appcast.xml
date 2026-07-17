@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss
+  version="2.0"
+  xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
+  xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Astex Changelog</title>
+    <link>https://github.com/wyznel/Astex</link>
+    <description>Latest releases for Astex</description>
+    <language>en</language>
+
+    <item>
+      <title>Version 0.1.0</title>
+      <pubDate>Fri, 17 Jul 2026 18:21:00 +0000</pubDate>
+      <sparkle:version>0.1.0</sparkle:version>
+      <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+      <enclosure
+        url="https://github.com/wyznel/Astex/releases/download/v0.1.0/Astex.dmg"
+        length="14196989"
+        type="application/octet-stream"
+        sparkle:edSignature="REPLACE_ED25519_SIGNATURE" />
+    </item>
+
+  </channel>
+</rss>
