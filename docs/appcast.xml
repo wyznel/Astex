@@ -10,15 +10,15 @@
     <language>en</language>
 
     <item>
-      <title>Version 0.1.1</title>
+      <title>Version 0.1.2</title>
       <pubDate>Fri, 17 Jul 2026 18:21:00 +0000</pubDate>
-      <sparkle:version>2</sparkle:version>
-      <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
+      <sparkle:version>3</sparkle:version>
+      <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
       <enclosure
-        url="https://github.com/wyznel/Astex/releases/download/v0.1.1/Astex.dmg"
+        url="https://github.com/wyznel/Astex/releases/download/v0.1.2/Astex.dmg"
         length="15061166"
         type="application/octet-stream"
-        sparkle:edSignature="buSekP4cFM0VxY5ZH6Ddd3xZeAjSrkPwrhkrU6DsRela0JvcK2xtzJazVq92uypyymxd5N3gRxeMY5xAenXFAw==" />
+        sparkle:edSignature="TxY9KecDkrzb7m02h+Vm3QeRRnUKne1/bpsq45iqS8D5EroQpmQx6phxrcIthE43w36mXUxNq+f6aTYvOIqBAg==" />
     </item>
 
   </channel>
