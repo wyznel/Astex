@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Astex – Local AI Chat for macOS</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0f;
+      --surface: #161618;
+      --border: #2a2a2e;
+      --accent: #6e57ff;
+      --accent-light: #8b76ff;
+      --text: #e8e8ea;
+      --muted: #888890;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── NAV ── */
+    nav {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.4rem 1.5rem;
+    }
+    nav .logo { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--text); }
+    nav .nav-links { display: flex; gap: 1.5rem; }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 5rem 1.5rem 3.5rem;
+      max-width: 700px;
+      width: 100%;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(110,87,255,0.15);
+      color: var(--accent-light);
+      border: 1px solid rgba(110,87,255,0.3);
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.3rem 0.85rem;
+      margin-bottom: 1.4rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 1.2rem;
+    }
+    h1 span { color: var(--accent-light); }
+    .hero p {
+      color: var(--muted);
+      font-size: 1.1rem;
+      line-height: 1.7;
+      margin-bottom: 2.2rem;
+    }
+    .cta-group { display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      width: 100%;
+      max-width: 900px;
+      padding: 2rem 1.5rem 5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--accent); }
+    .card-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
+    .card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .card p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── REQUIREMENTS ── */
+    .req {
+      width: 100%;
+      max-width: 900px;
+      padding: 0 1.5rem 4rem;
+      text-align: center;
+    }
+    .req h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem; }
+    .req-pills { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.45rem 1rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      width: 100%;
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--muted); text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <span class="logo">Astex</span>
+    <div class="nav-links">
+      <a href="https://github.com/wyznel/Astex/blob/main/ROADMAP.md">Roadmap</a>
+      <a href="https://github.com/wyznel/Astex/releases">Releases</a>
+      <a href="https://github.com/wyznel/Astex">GitHub</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="badge">macOS · Swift · Local AI</div>
+    <h1>Chat with AI,<br><span>completely offline.</span></h1>
+    <p>
+      Astex is a native macOS app that gives you a clean, modern chat interface
+      for local language models — powered by Ollama, with no data ever leaving your machine.
+    </p>
+    <div class="cta-group">
+      <a class="btn btn-primary" href="https://github.com/wyznel/Astex/releases">
+        ↓ Download Latest
+      </a>
+      <a class="btn btn-secondary" href="https://github.com/wyznel/Astex">
+        View on GitHub
+      </a>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="card">
+      <div class="card-icon">🔒</div>
+      <h3>Fully Private</h3>
+      <p>All inference runs locally via Ollama. Your conversations never leave your Mac.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">💬</div>
+      <h3>Persistent History</h3>
+      <p>Chats are saved automatically with SwiftData so you can pick up where you left off.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">✨</div>
+      <h3>Smart Titles</h3>
+      <p>Conversations are automatically titled based on context — no manual labelling needed.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <h3>Model Management</h3>
+      <p>Pull, load, and delete Ollama models directly from within the app.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">✈️</div>
+      <h3>Works Offline</h3>
+      <p>No internet required once your models are installed — ideal for air-gapped environments.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🍎</div>
+      <h3>Native Swift</h3>
+      <p>Built entirely in Swift for a fluid, platform-native experience on macOS.</p>
+    </div>
+  </section>
+
+  <section class="req">
+    <h2>Requirements</h2>
+    <div class="req-pills">
+      <span class="pill">macOS 26+</span>
+      <span class="pill">Ollama installed</span>
+      <span class="pill">Apple Silicon or Intel</span>
+    </div>
+  </section>
+
+  <footer>
+    <p>Astex is open source — <a href="https://github.com/wyznel/Astex">github.com/wyznel/Astex</a></p>
+  </footer>
+
+</body>
+</html>
