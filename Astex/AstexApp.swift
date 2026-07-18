@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import Sparkle
 
 @main
 struct AstexApp: App {
@@ -25,6 +26,12 @@ struct AstexApp: App {
         }
     }()
 
+    private let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -33,9 +40,13 @@ struct AstexApp: App {
                 .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
                 .tint(.sepiaAccent)
         }
-//        .commands {
-//            // Populate here.
-//        }
+        .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates..."){
+                    updaterController.updater.checkForUpdates()
+                }
+            }
+        }
         .modelContainer(sharedModelContainer)
     }
 }
