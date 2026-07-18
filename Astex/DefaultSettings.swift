@@ -14,8 +14,9 @@ class Settings: ObservableObject {
     @AppStorage("ModelInformationShowSizeOnDisk") var showSizeOnDisk: Bool = true
     @AppStorage("ModelInformationShowFormat") var showFormat: Bool = true
     @AppStorage("ModelInformationShowParameterSize") var showParameterSize: Bool = true
+    @AppStorage("ModelProvider") var modelProvider: ModelEngines = .ollama
     
-    @AppStorage("SelectedModel") var selectedModel: String = "llama3.2:3b"
+    @AppStorage("SelectedModel") var selectedModel: String = ""
     @AppStorage("IsFirstOpen") var isFirstOpen: Bool = true
     
     private init() {}

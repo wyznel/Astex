@@ -13,37 +13,14 @@ import Textual
 // MARK: - ModelManagementView
 
 struct ModelManagementView: View {
-    // MARK: Column Descriptor
-    
-    /// Single source of truth for which data columns are visible and their header labels.
+
     struct ColumnDescriptor: Identifiable {
         let id: String
         let header: String
         let keyPath: KeyPath<ModelRowData, String>
         let isVisible: (Settings) -> Bool
     }
-
-    static let allColumns: [ColumnDescriptor] = [
-        ColumnDescriptor(
-            id: "sizeOnDisk",
-            header: "Size on disk",
-            keyPath: \.sizeOnDisk,
-            isVisible: { $0.showSizeOnDisk }
-        ),
-        ColumnDescriptor(
-            id: "format",
-            header: "FORMAT",
-            keyPath: \.format,
-            isVisible: { $0.showFormat }
-        ),
-        ColumnDescriptor(
-            id: "parameterSize",
-            header: "Parameter Size",
-            keyPath: \.parameterSize,
-            isVisible: { $0.showParameterSize }
-        ),
-    ]
-
+    
     // MARK: Properties
     
     static var client = Client.default
@@ -52,15 +29,10 @@ struct ModelManagementView: View {
 
     @ObservedObject private var settings = Settings.shared
     @State private var models: [String] = []
-    @State private var selectedModel: String? = Settings.shared.selectedModel
     @State private var hasModelTableAppeared: Bool = false
     
     @State private var showTextInput: Bool = false
     
-    /// Visible columns derived from current settings.
-    private var visibleColumns: [ColumnDescriptor] {
-        Self.allColumns.filter { $0.isVisible(settings) }
-    }
     
     @State private var successfullyUnloadedModels: Bool = false
     // MARK: Body
@@ -68,14 +40,71 @@ struct ModelManagementView: View {
     var body: some View {
         ZStack {
             VStack {
+                ModelProvider()
+                
+                ModelTable(showTextInput: $showTextInput, models: $models) {
+                    await refreshAvailableModels()
+                }
+            }
+            .blur(radius: showTextInput ? 5 : 0)
+            
+            if showTextInput {
+                ModelInputCard(showTextInput: $showTextInput) {
+                    Task {
+                        models = await ModelManagementView.utilities.getAvailableModelsNAME_ONLY_OLLAMA()
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Model Table
+    
+    struct ModelTable: View {
+        @ObservedObject private var settings = Settings.shared
+        // MARK: Column Descriptor
+
+        static let allColumns: [ColumnDescriptor] = [
+            ColumnDescriptor(
+                id: "sizeOnDisk",
+                header: "Size on disk",
+                keyPath: \.sizeOnDisk,
+                isVisible: { $0.showSizeOnDisk }
+            ),
+            ColumnDescriptor(
+                id: "format",
+                header: "FORMAT",
+                keyPath: \.format,
+                isVisible: { $0.showFormat }
+            ),
+            ColumnDescriptor(
+                id: "parameterSize",
+                header: "Parameter Size",
+                keyPath: \.parameterSize,
+                isVisible: { $0.showParameterSize }
+            ),
+        ]
+        @State private var selectedModel: String? = Settings.shared.selectedModel
+        
+        @Binding var showTextInput: Bool
+        @Binding var models: [String]
+        var refreshAvailableModels: () async -> Void
+        
+        /// Visible columns derived from current settings.
+        private var visibleColumns: [ColumnDescriptor] {
+            Self.allColumns.filter { $0.isVisible(settings) }
+        }
+        
+        var body: some View {
+            VStack {
                 HStack {
-                    InlineText(markdown: "**Models (Ollama)**")
+                    InlineText(markdown: "**Models**")
                         .padding(6)
                         .frame(alignment: .leading)
                     Spacer()
                     
                     PullModelButton(showTextInput: $showTextInput)
-                    //TODO: - IMPLEMENT REFRESHING FOR MODELS.
+                    
                     Refresh {
                         Task {
                             await refreshAvailableModels()
@@ -140,9 +169,13 @@ struct ModelManagementView: View {
                     print("Selected Model: \(Settings.shared.selectedModel)")
                 }
             }
-            .blur(radius: showTextInput ? 5 : 0)
             .task {
                 await refreshAvailableModels()
+                
+                if settings.selectedModel.isEmpty && !models.isEmpty {
+                    settings.selectedModel = models[0]
+                }
+                
             }
             .contentShape(Rectangle())
             .contextMenu(
@@ -175,13 +208,6 @@ struct ModelManagementView: View {
                 })
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-            if showTextInput {
-                ModelInputCard(showTextInput: $showTextInput) {
-                    Task {
-                        models = await ModelManagementView.utilities.getAvailableModelsNAME_ONLY_OLLAMA()
-                    }
-                }
-            }
         }
     }
     
@@ -292,7 +318,7 @@ struct ModelManagementView: View {
             } label: {
                 Image(systemName: "trash")
             }
-            .hoverHelpMenu {
+            .tooltip {
                 Text("Delete Model")
                     .fixedSize()
             }
@@ -468,7 +494,7 @@ struct ModelManagementView: View {
                     }
                 }
             }
-            .hoverHelpMenu(alignment: .top){
+            .tooltip(alignment: .top){
                 Text("Unload Model")
             }
         }
@@ -488,7 +514,7 @@ struct ModelManagementView: View {
             }label: {
                 Image(systemName: "plus")
             }
-            .hoverHelpMenu(delay: 1.0, offsetX: 40) {
+            .tooltip(delay: 1.0, offsetX: 40) {
                 Text("Pull Model from Ollama")
             }
         }
@@ -501,8 +527,8 @@ struct ModelManagementView: View {
         
         var onDone: () -> Void
         
+        @State private var input_field = ""
         @State private var modelName = ""
-        
         @State private var progressText: String = ""
         
         @State private var errorMessage: String?
@@ -515,7 +541,6 @@ struct ModelManagementView: View {
         @State private var temp_count: Int = 1
         @State private var appeared: Bool = false
 
-        
         var body: some View {
             VStack(spacing: 16) {
                 // Header area with icon and close button
@@ -524,7 +549,6 @@ struct ModelManagementView: View {
                         Image(systemName: "arrow.down.circle.fill")
                             .font(.system(size: 36, weight: .medium))
                             .foregroundStyle(Color.sepiaAccent)
-                            .shadow(color: Color.sepiaAccent.opacity(0.3), radius: 8, y: 2)
                         
                         Text("Pull Model")
                             .font(.system(size: 17, weight: .semibold))
@@ -552,7 +576,7 @@ struct ModelManagementView: View {
                 }
                 
                 HStack(spacing: 8) {
-                    TextField("e.g. llama3.2:3b", text: $modelName)
+                    TextField("e.g. llama3.2:3b", text: $input_field)
                         .textFieldStyle(.plain)
                         .disableAutocorrection(true)
                         .padding(.horizontal, 10)
@@ -563,6 +587,7 @@ struct ModelManagementView: View {
                     Button {
                         Task {
                             do {
+                                modelName = input_field
                                 for try await prog in client.pullModelStream("\(modelName)") {
                                     if temp_count == 2 && model_hash.isEmpty {
                                         model_hash = prog.status
@@ -598,13 +623,13 @@ struct ModelManagementView: View {
                         Image(systemName: "arrow.down.circle.fill")
                             .font(.system(size: 20))
                             .foregroundStyle(
-                                modelName.isEmpty
+                                input_field.isEmpty
                                     ? Color.sepiaText.opacity(0.2)
                                     : Color.sepiaAccent
                             )
                     }
                     .buttonStyle(.plain)
-                    .disabled(modelName.isEmpty)
+                    .disabled(input_field.isEmpty)
                 }
                 
                 // Error message
@@ -637,6 +662,7 @@ struct ModelManagementView: View {
                 }
                 
                 if isSuccess {
+                    Text("Finished downloading model: \(modelName)")
                     Button {
                         withAni {
                             downloadInProgress = false
@@ -662,6 +688,7 @@ struct ModelManagementView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .scaleEffect(appeared ? 1 : 0.92)
             .opacity(appeared ? 1 : 0)
+            .offset(y: -100)
             .onAppear {
                 withAni {
                     appeared = true

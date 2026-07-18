@@ -6,7 +6,7 @@
 //
 import SwiftUI
 
-struct HoverHelpMenu<HoverContent: View>: ViewModifier {
+struct ToolTip<HoverContent: View>: ViewModifier {
     @State private var isHovering: Bool = false
     @State private var showHelp: Bool = false
     
@@ -39,8 +39,11 @@ struct HoverHelpMenu<HoverContent: View>: ViewModifier {
                     hoverContent()
                         .padding(8)
                         .fixedSize()
-                        .glassEffect(.regular)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .background(Capsule().fill(Color.sepiaSurface))
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(.separator.opacity(0.35), lineWidth: 1)
+                        )
                         .shadow(radius: 4)
                         .offset(y: 0)
                         .offset(x: +60+offsetX)
@@ -52,12 +55,12 @@ struct HoverHelpMenu<HoverContent: View>: ViewModifier {
 
 
 extension View {
-    func hoverHelpMenu<Content: View>(
+    func tooltip<Content: View>(
         delay: Double = 0.6,
         alignment: Alignment = .top,
         offsetX: Double = 0,
         @ViewBuilder content: @escaping () -> Content
     ) -> some View {
-        modifier(HoverHelpMenu(delay: delay, alignment: alignment, offsetX: offsetX,hoverContent: content))
+        modifier(ToolTip(delay: delay, alignment: alignment, offsetX: offsetX,hoverContent: content))
     }
 }

@@ -452,8 +452,6 @@ struct ContentView: View {
                         HStack(spacing: 4) {
                             Text(settings.selectedModel)
                                 .font(.caption)
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(.caption2)
                         }
                         .foregroundStyle(.secondary)
                     }

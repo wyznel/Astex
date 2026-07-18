@@ -11,7 +11,7 @@
     - [ ] Show available models from all providers
     - [X] Delete models
     - [X] Unload models from memory.
-    - [ ] Pull models from Ollama
+    - [X] Pull models from Ollama
 - [X] Update chat interface.
     - [X] Allow uploads of files.
     - [X] Fix chat scroll resetting to top when sending a chat.

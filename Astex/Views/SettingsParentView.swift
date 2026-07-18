@@ -30,7 +30,7 @@ struct SettingsView: View {
                         selectedTab: $selectedTab
                     )
                     {
-                        withAni(doubled: true){
+                        withAni {
                             selectedTab = 1
                         }
                     }
@@ -42,7 +42,7 @@ struct SettingsView: View {
                         selectedTab: $selectedTab
                     )
                     {
-                        withAni(doubled: true){
+                        withAni {
                             selectedTab = 2
                         }
                     }
@@ -53,7 +53,7 @@ struct SettingsView: View {
                         pageID: 3,
                         selectedTab: $selectedTab
                     ) {
-                        withAni(doubled: true){
+                        withAni {
                             selectedTab = 3
                         }
                     }
@@ -70,7 +70,7 @@ struct SettingsView: View {
                 case 2:
                     SettingsTabView()
                 case 3:
-                    appearance()
+                    AppearanceTabView()
                 default:
                     Text("Invalid")
             }

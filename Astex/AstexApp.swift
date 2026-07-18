@@ -11,6 +11,7 @@ import Sparkle
 
 @main
 struct AstexApp: App {
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Chat.self,

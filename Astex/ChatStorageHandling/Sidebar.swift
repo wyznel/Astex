@@ -185,15 +185,21 @@ struct ChatActionHandling: View {
                         }
                 )
                 .contextMenu(menuItems: {
-                    Button("Edit Title", systemImage: "keyboard") {
+                    Button {
                         editTitle()
+                    } label: {
+                        Label("Edit Title", systemImage: "keyboard")
                     }
-                    Button("Generate Title", systemImage: "pencil"){
+                    Button {
                         getNewTitle(chat)
+                    } label: {
+                        Label("Generate Title", systemImage: "pencil")
                     }
                     Divider()
-                    Button("Delete", systemImage: "delete.backward") {
+                    Button {
                         onDeleteChat(chat)
+                    }label: {
+                        Label("Delete...", systemImage: "delete.backward")
                     }
                 })
                 .buttonStyle(ChatRowButtonStyle())
