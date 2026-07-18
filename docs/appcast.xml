@@ -1,25 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?>
-<rss
-  version="2.0"
-  xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
-  xmlns:dc="http://purl.org/dc/elements/1.1/">
-  <channel>
-    <title>Astex Changelog</title>
-    <link>https://github.com/wyznel/Astex</link>
-    <description>Latest releases for Astex</description>
-    <language>en</language>
-
-    <item>
-      <title>Version 0.1.2</title>
-      <pubDate>Fri, 17 Jul 2026 18:21:00 +0000</pubDate>
-      <sparkle:version>3</sparkle:version>
-      <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
-      <enclosure
-        url="https://github.com/wyznel/Astex/releases/download/v0.1.2/Astex.dmg"
-        length="15061166"
-        type="application/octet-stream"
-        sparkle:edSignature="TxY9KecDkrzb7m02h+Vm3QeRRnUKne1/bpsq45iqS8D5EroQpmQx6phxrcIthE43w36mXUxNq+f6aTYvOIqBAg==" />
-    </item>
-
-  </channel>
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Astex</title>
+        <item>
+            <title>0.1.3.1</title>
+            <pubDate>Sat, 18 Jul 2026 09:48:46 +0100</pubDate>
+            <sparkle:version>4.1</sparkle:version>
+            <sparkle:shortVersionString>0.1.3.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.6</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/wyznel/Astex/releases/download/v0.1.3.1/Astex.dmg" length="15142328" type="application/octet-stream" sparkle:edSignature="Y9BxT1VlgVxRW5I4wxWvEtdrUdATGnNk/5fJho36DzB6sf11C639iZwpQhuXiN+N7CNLyOdd+nutVpLdwO0PDQ=="/>
+        </item>
+        <item>
+            <title>0.1.3</title>
+            <pubDate>Sat, 18 Jul 2026 09:36:34 +0100</pubDate>
+            <sparkle:version>4</sparkle:version>
+            <sparkle:shortVersionString>0.1.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.6</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/wyznel/Astex/releases/download/v0.1.3/Astex.dmg" length="15142321" type="application/octet-stream" sparkle:edSignature="8RWrbCiEGbeUbJskFYzW2hk40W51mDg97799hx+GmVj/m1pzBMCCoqCHeVDCUQSHheI758ssfzfDEkk9z4qzBA=="/>
+        </item>
+    </channel>
 </rss>
