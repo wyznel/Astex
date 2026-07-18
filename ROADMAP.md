@@ -5,6 +5,8 @@
 - [X] Automatic title generation.
 - [X] Migrate to use NavigationLink instead of custom sidebar
 - [X] Implement compatibility with thinking models.
+- [X] Add autoupdater using Sparkle.
+- [X] Fix quarantine & Gatekeeper flagging. 
 - [ ] Model Management Tab
     - [ ] Show available models from all providers
     - [X] Delete models
