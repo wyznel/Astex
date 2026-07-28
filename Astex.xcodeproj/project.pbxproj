@@ -10,6 +10,7 @@
 		B5396DD22FE0B03D000B81FD /* Ollama in Frameworks */ = {isa = PBXBuildFile; productRef = B5396DD12FE0B03D000B81FD /* Ollama */; };
 		B5396DD52FE0B03D000B81FD /* Textual in Frameworks */ = {isa = PBXBuildFile; productRef = B5396DD42FE0B03D000B81FD /* Textual */; };
 		B586844D300AB9230022FEE8 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = B586844C300AB9230022FEE8 /* Sparkle */; };
+		B5AC096E300C3A2F001377B5 /* RapidMLX in Frameworks */ = {isa = PBXBuildFile; productRef = B5AC096D300C3A2F001377B5 /* RapidMLX */; };
 		B5CD49FC2FE1FFFA00FAC142 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = B5CD49FB2FE1FFF500FAC142 /* .gitignore */; };
 /* End PBXBuildFile section */
 
@@ -45,6 +46,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B586844D300AB9230022FEE8 /* Sparkle in Frameworks */,
+				B5AC096E300C3A2F001377B5 /* RapidMLX in Frameworks */,
 				B5396DD22FE0B03D000B81FD /* Ollama in Frameworks */,
 				B5396DD52FE0B03D000B81FD /* Textual in Frameworks */,
 			);
@@ -93,6 +95,7 @@
 				B5396DD12FE0B03D000B81FD /* Ollama */,
 				B5396DD42FE0B03D000B81FD /* Textual */,
 				B586844C300AB9230022FEE8 /* Sparkle */,
+				B5AC096D300C3A2F001377B5 /* RapidMLX */,
 			);
 			productName = Astex;
 			productReference = B5396DB32FE0B03C000B81FD /* Astex.app */;
@@ -126,6 +129,7 @@
 				B5396DD02FE0B03D000B81FD /* XCRemoteSwiftPackageReference "ollama-swift" */,
 				B5396DD32FE0B03D000B81FD /* XCRemoteSwiftPackageReference "textual" */,
 				B586844B300AB9230022FEE8 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				B5AC096C300C3A2F001377B5 /* XCRemoteSwiftPackageReference "rapid-mlx-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B5396DB42FE0B03C000B81FD /* Products */;
@@ -427,6 +431,14 @@
 				minimumVersion = 2.9.4;
 			};
 		};
+		B5AC096C300C3A2F001377B5 /* XCRemoteSwiftPackageReference "rapid-mlx-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/wyznel/rapid-mlx-swift";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -444,6 +456,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B586844B300AB9230022FEE8 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		B5AC096D300C3A2F001377B5 /* RapidMLX */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B5AC096C300C3A2F001377B5 /* XCRemoteSwiftPackageReference "rapid-mlx-swift" */;
+			productName = RapidMLX;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

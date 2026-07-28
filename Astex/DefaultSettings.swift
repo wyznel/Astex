@@ -16,7 +16,7 @@ class Settings: ObservableObject {
     @AppStorage("ModelInformationShowParameterSize") var showParameterSize: Bool = true
     @AppStorage("ModelProvider") var modelProvider: ModelEngines = .ollama
     
-    @AppStorage("SelectedModel") var selectedModel: String = ""
+    @AppStorage("SelectedModel") var selectedModel: String = "gemma-4-e2b-4bit"
     @AppStorage("IsFirstOpen") var isFirstOpen: Bool = true
     
     private init() {}

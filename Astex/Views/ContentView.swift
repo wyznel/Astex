@@ -30,6 +30,7 @@ struct ContentView: View {
     @State private var streamingChunks: [String] = []
     @State private var thinkingStreamingChunks: [String] = []
     @State private var toolCallingChunks: [String] = []
+    @State private var isModelLoading: Bool = false
     @State private var availableModels: [String] = []
     
     @State private var showFileImporter: Bool = false
@@ -38,14 +39,14 @@ struct ContentView: View {
     
     private let chunkCharLimit = 1000
     
-    
     private let llm = LLM()
 
     /// Centralised registry of all tools the LLM can invoke.
     /// To add a new tool: create its implementation in Tools/ and add it
     /// to the array below. No other files need to change.
     private let toolRegistry = ToolRegistry(tools: [
-        DocumentCreation.makeTool()
+        DocumentCreation.makeTool(),
+        CurrentTime.makeTool()
     ])
 
     var body: some View {
@@ -118,6 +119,11 @@ struct ContentView: View {
                 }
             }
             .navigationSplitViewStyle(.balanced)
+            .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { newValue in
+                Task {
+                    await llm.stopAllModels()
+                }
+            }
         } else {
             OnboardingView()
                 .windowResizeBehavior(.disabled)
@@ -134,27 +140,32 @@ struct ContentView: View {
                         ForEach(
                             (activeChat?.messages ?? []).sorted(by: { msg, msg1 in msg.createdAt < msg1.createdAt})
                         ) { message in
-                            if message.isUser{
+                            if message.isUser {
                                 MessageView(message: message.response, isUserMessage: true)
-                                    .transition(.opacity)
-                            }else if !message.isThinking {
-                                MessageView(message: message.response, isUserMessage: false)
                                     .transition(.opacity)
                             } else if message.isAToolCall {
                                 MessageView(message: message.response, isUserMessage: false)
                                     .transition(.opacity)
-                            }
-                            else{
+                            } else if !message.isThinking {
+                                MessageView(message: message.response, isUserMessage: false)
+                                    .transition(.opacity)
+                            } else {
                                 ThinkingView(message: message.response)
                                     .transition(.opacity)
                             }
                         }
+                        //Model is warming up / beginning its response. Show loading.
+                        if isModelLoading && streamingChunks.isEmpty && thinkingStreamingChunks.isEmpty {
+                            LoadingMessageBubble()
+                        }
+                        
                         // For streaming in-process chunks, they're grouped so all chunks share the width of the widest one rather than sizing independently.
                         if !thinkingStreamingChunks.isEmpty {
                             HStack {
                                 VStack(alignment: .leading, spacing: 6) {
                                     ForEach(thinkingStreamingChunks.indices, id: \.self){ i in
                                         Text(thinkingStreamingChunks[i])
+                                            .opacity(0.5)
                                             .textSelection(.enabled)
                                             .padding(.horizontal, 10)
                                             .padding(.vertical, i == 0 ? 10 : 4)
@@ -162,7 +173,7 @@ struct ContentView: View {
                                             .transition(.opacity.combined(with: .scale))
                                     }
                                 }
-                                .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 6))
+                                .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 6))
                                 .frame(maxWidth: 550, alignment: .leading)
                                 Spacer()
                             }
@@ -180,7 +191,7 @@ struct ContentView: View {
                                             .transition(.opacity.combined(with: .scale))
                                     }
                                 }
-                                .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 6))
+                                .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 6))
                                 .frame(maxWidth: 550, alignment: .leading)
                                 Spacer()
                             }
@@ -260,6 +271,12 @@ struct ContentView: View {
         // showing the previous response's bubble while waiting for the new stream.
         streamingChunks = []
         
+        defer {
+            withAni {
+                isModelLoading = false
+            }
+        }
+        
         do {
             let stream = llm.generateStream(
                 activeChat?.messages ?? [],
@@ -273,6 +290,9 @@ struct ContentView: View {
                 
                 switch chunk {
                 case .thinking(let text):
+                    withAni {
+                        isModelLoading = false
+                    }
                     if thinkingStreamingChunks.isEmpty {
                         thinkingStreamingChunks.append("")
                     }
@@ -284,6 +304,9 @@ struct ContentView: View {
                     }
                     
                 case .content(let text):
+                    withAni {
+                        isModelLoading = false
+                    }
                     if streamingChunks.isEmpty {
                         streamingChunks.append("")
                     }
@@ -294,13 +317,25 @@ struct ContentView: View {
                         streamingChunks.append("")
                     }
                 case .toolCall(let text):
+                    withAni {
+                        isModelLoading = false
+                    }
                     if toolCallingChunks.isEmpty {
                         toolCallingChunks.append("")
                     }
                     
                     toolCallingChunks[toolCallingChunks.count - 1] += text
+                case .loading(let loading):
+                    if loading && streamingChunks.isEmpty && thinkingStreamingChunks.isEmpty {
+                        withAni {
+                            isModelLoading = true
+                        }
+                    } else {
+                        withAni {
+                            isModelLoading = false
+                        }
+                    }
                 }
-            
             }
         } catch {
             if Task.isCancelled {
@@ -422,7 +457,7 @@ struct ContentView: View {
                         return .handled
                     }
                 
-                HStack(alignment: .bottom, spacing: 12) {
+                HStack(alignment: .bottom) {
                     Button {
                         showFileImporter = true
                     } label: {
@@ -438,31 +473,39 @@ struct ContentView: View {
                     }
                     
                     Spacer()
-
-                    Menu {
-                        ForEach(availableModels, id: \.self) { model in
-                            Button {
-                                settings.selectedModel = model
-                            } label: {
-                                Text(model)
-                                    .foregroundStyle(.secondary)
-                            }
+                    
+                    
+                    Picker("Engine", selection: $settings.modelProvider) {
+                        ForEach(ModelEngines.allCases, id: \.self) { provider in
+                            Text(provider.rawValue)
+                                .tag(provider)
                         }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(settings.selectedModel)
-                                .font(.caption)
+                    }
+                    .scaleEffect(0.85)
+                    .padding(.horizontal, -12)
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .tint(.sepiaAccent)
+                    .offset(y: -2)
+                    
+                    Picker("Models", selection: $settings.selectedModel) {
+                        ForEach(availableModels, id: \.self)  { model in
+                            Text(model)
+                                .tag(model)
                         }
-                        .foregroundStyle(.secondary)
                     }
-                    .menuStyle(.borderlessButton)
-                    .task {
-                        // Load available models once when the menu appears
-                        availableModels = await utilities.getAvailableModelsNAME_ONLY_OLLAMA()
+                    .scaleEffect(0.85)
+                    .padding(.horizontal, -12)
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .tint(.sepiaAccent)
+                    .onAppear {
+                        Task {
+                            availableModels = await utilities.getAvailableModelsNAME_ONLY_OLLAMA()
+                        }
                     }
-                    .fixedSize()
-                    .offset(y: -4)
-
+                    .offset(y: -2)
+                    
                     Button {
                         if isAResponseGenerating {
                             generationTask?.cancel()
@@ -492,7 +535,7 @@ struct ContentView: View {
             .padding(.leading, 5)
             .padding(.bottom, 3)
             .frame(maxWidth: prompt.isEmpty ? 400 : 750)
-            .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 8))
+            .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 8))
         }
         .offset(y: chatWindowEmpty ? 0 : -20)
         .fileImporter(
@@ -520,7 +563,7 @@ struct ContentView: View {
             StructuredText(markdown: message)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 10)
-                .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 6))
+                .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 6))
                 .frame(maxWidth: 550, alignment: isUserMessage ? .trailing : .leading)
                 .textual.textSelection(.enabled)
             if !isUserMessage { Spacer() }
@@ -533,11 +576,23 @@ struct ContentView: View {
             CollapsibleText(text: message, lineLimit: 1)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 10)
-                .glassEffect(settings.glassEffect.interactive(), in: .rect(cornerRadius: 10))
+                .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 10))
                 .frame(maxWidth: 500, alignment: .leading)
             Spacer()
         }
         .opacity(0.4)
     }
     
+    @ViewBuilder
+    func LoadingMessageBubble() -> some View {
+        HStack {
+            SpinningLoaderView()
+                .scaleEffect(0.15)
+                .frame(width: 20, height: 20)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 10)
+                .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 10))
+            Spacer()
+        }
+    }
 }

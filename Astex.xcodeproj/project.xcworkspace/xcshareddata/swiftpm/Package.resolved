@@ -1,5 +1,5 @@
 {
-  "originHash" : "89b7713cfea65750a0488c51c967d1c1ceaf8d6dc40eb5d82c0d671684842bd4",
+  "originHash" : "f9e2446a5900a8acaa64c493969ce3e35a15dea26c341d04707102210b05cb42",
   "pins" : [
     {
       "identity" : "ollama-swift",
@@ -8,6 +8,15 @@
       "state" : {
         "branch" : "main",
         "revision" : "402e27b39e42dd68f07a1333dd3428f300fa74f0"
+      }
+    },
+    {
+      "identity" : "rapid-mlx-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/wyznel/rapid-mlx-swift",
+      "state" : {
+        "branch" : "main",
+        "revision" : "b5c26c3c94a2451f6867aa0e0283d7851afee281"
       }
     },
     {

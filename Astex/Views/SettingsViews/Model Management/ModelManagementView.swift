@@ -33,8 +33,8 @@ struct ModelManagementView: View {
     
     @State private var showTextInput: Bool = false
     
-    
     @State private var successfullyUnloadedModels: Bool = false
+    
     // MARK: Body
     
     var body: some View {
@@ -161,7 +161,7 @@ struct ModelManagementView: View {
                 .padding(.trailing, 10)
                 .frame(maxWidth: 600)
                 .glassEffect(
-                    settings.glassEffect.interactive(),
+                    settings.glassEffect,
                     in: .rect(cornerRadius: 12)
                 )
                 .onChange(of: selectedModel) {

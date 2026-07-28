@@ -3,14 +3,8 @@ import SwiftUI
 import Foundation
 
 
-enum StreamChunk {
-    case thinking(String)
-    case content(String)
-    case toolCall(String)
-}
-
 @MainActor
-class LLM {
+class OllamaEngine {
     let client = Client.default
     
     func getAvailableModels() async -> [Client.ListModelsResponse.Model] {
@@ -53,8 +47,10 @@ class LLM {
             var sorted = previousMessages.sorted { $0.createdAt < $1.createdAt }
             sorted.append(promptForTitleGen)
             
-            let messageHistory = sorted.map { message -> Ollama.Chat.Message in
-                if message.isUser {
+            let messageHistory = sorted.compactMap { message -> Ollama.Chat.Message? in
+                if message.isAToolCall {
+                    return nil
+                } else if message.isUser {
                     return .user(message.response)
                 } else {
                     return .assistant(message.response)
@@ -83,8 +79,10 @@ class LLM {
             let task = Task { @MainActor in
                 do {
                     let sorted = previousMessages.sorted { $0.createdAt < $1.createdAt }
-                    var messageHistory = sorted.map { message -> Ollama.Chat.Message in
-                        if message.isUser {
+                    var messageHistory = sorted.compactMap { message -> Ollama.Chat.Message? in
+                        if message.isAToolCall {
+                            return nil
+                        } else if message.isUser {
                             return .user(message.response)
                         } else if !message.isThinking {
                             return .assistant(message.response)
@@ -100,7 +98,7 @@ class LLM {
                         """),
                         at: 0)
                     
-                    print(messageHistory)
+                    
                     // Inject uploaded file contents into the last user message
                     if let fileContext {
                         if let lastIndex = messageHistory.lastIndex(where: { $0.role == .user }) {
@@ -195,7 +193,6 @@ class LLM {
                     task.cancel()
                 }
             }
-
         }
     }
     

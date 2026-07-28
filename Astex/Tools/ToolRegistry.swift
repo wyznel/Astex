@@ -5,6 +5,7 @@
 //  Created by Ben Herbert on 13/07/2026.
 //
 import Ollama
+import RapidMLX
 import Foundation
 
 // MARK: - Tool Registry
@@ -20,9 +21,16 @@ import Foundation
 final class ToolRegistry: @unchecked Sendable {
     private let tools: [String: any ExecutableTool]
 
-    /// All registered tools as ToolProtocol instances, ready for chatStream().
+    /// All registered tools as Ollama.ToolProtocol instances, ready for chatStream().
     /// Cached at init to avoid allocating a new array on every access.
-    let allToolProtocols: [any ToolProtocol]
+    let allToolProtocols: [any Ollama.ToolProtocol]
+
+    /// All registered tools adapted for RapidMLX.
+    var allRapidMLXTools: [any RapidMLX.ToolProtocol] {
+        return tools.values.compactMap { executableTool in
+            ToolRegistry.adaptToRapidMLX(executableTool)
+        }
+    }
 
     /// Whether any tools are registered.
     var isEmpty: Bool { tools.isEmpty }
@@ -41,10 +49,52 @@ final class ToolRegistry: @unchecked Sendable {
     /// Look up and execute a tool by name with the provided arguments.
     /// Returns a JSON string result suitable for appending as a `.tool()` message.
     /// Returns an error JSON string if the tool name is not registered.
-    func execute(name: String, arguments: [String: Value]) async throws -> String {
+    func execute(name: String, arguments: [String: Ollama.Value]) async throws -> String {
         guard let tool = tools[name] else {
             return "{\"error\": \"Unknown tool: \(name)\"}"
         }
         return try await tool.execute(arguments: arguments)
+    }
+
+    /// Look up and execute a tool by name with a raw JSON string argument.
+    /// Returns a JSON string result suitable for appending as a tool result message.
+    /// Returns an error JSON string if the tool name is not registered.
+    func execute(name: String, jsonString: String) async throws -> String {
+        guard let tool = tools[name] else {
+            return "{\"error\": \"Unknown tool: \(name)\"}"
+        }
+        return try await tool.execute(jsonString: jsonString)
+    }
+
+    /// Adapts an ExecutableTool (Ollama-based) into a RapidMLX.ToolProtocol instance.
+    private static func adaptToRapidMLX(_ executableTool: any ExecutableTool) -> (any RapidMLX.ToolProtocol)? {
+        do {
+            let encoder = JSONEncoder()
+            let decoder = JSONDecoder()
+
+            let schemaData = try encoder.encode(executableTool.toolProtocol.schema)
+            let schemaJson = try decoder.decode(RapidMLX.JSONValue.self, from: schemaData)
+
+            guard case .object(let rootDict) = schemaJson,
+                  case .object(let funcDict) = rootDict["function"] else {
+                return nil
+            }
+
+            let rapidTool = RapidMLX.Tool<[String: RapidMLX.JSONValue], RapidMLX.JSONValue>(
+                schema: funcDict,
+                implementation: { argumentsDict in
+                    let argsData = try encoder.encode(argumentsDict)
+                    let argsString = String(data: argsData, encoding: .utf8) ?? "{}"
+                    let resultString = try await executableTool.execute(jsonString: argsString)
+
+                    let resultData = Data(resultString.utf8)
+                    return (try? decoder.decode(RapidMLX.JSONValue.self, from: resultData)) ?? .string(resultString)
+                }
+            )
+            return rapidTool
+        } catch {
+            print("Failed to adapt tool '\(executableTool.name)' for RapidMLX: \(error)")
+            return nil
+        }
     }
 }

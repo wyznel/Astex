@@ -78,6 +78,7 @@ class Utilities {
     
     func tryUnloadAllModels() async -> Bool {
         let loadedModels: [String] = await getRunningModels()
+        print("loaded models: ", loadedModels)
         var unloadedModelCount: Int = 0
         let totalModels = loadedModels.count
             

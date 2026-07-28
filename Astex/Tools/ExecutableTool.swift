@@ -22,6 +22,10 @@ protocol ExecutableTool: Sendable {
     /// Execute the tool with dynamic arguments from the model.
     /// Returns a JSON string representing the output.
     func execute(arguments: [String: Value]) async throws -> String
+
+    /// Execute the tool with a raw JSON string argument.
+    /// Returns a JSON string representing the output.
+    func execute(jsonString: String) async throws -> String
 }
 
 /// Generic wrapper that bridges a typed `Tool<Input, Output>` to `ExecutableTool`.
@@ -60,6 +64,16 @@ struct AnyTool<Input: Codable & Sendable, Output: Codable & Sendable>: Executabl
 
         let output = try await tool(input)
 
+        let outputData = try encoder.encode(output)
+        return String(data: outputData, encoding: .utf8) ?? "{}"
+    }
+
+    func execute(jsonString: String) async throws -> String {
+        guard let data = jsonString.data(using: .utf8) else {
+            return "{\"error\": \"Invalid JSON string\"}"
+        }
+        let input = try decoder.decode(Input.self, from: data)
+        let output = try await tool(input)
         let outputData = try encoder.encode(output)
         return String(data: outputData, encoding: .utf8) ?? "{}"
     }
