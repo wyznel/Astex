@@ -9,7 +9,7 @@ import Foundation
 import RapidMLX
 
 class RapidMLXEngine {
-    let client = RapidMLXClient()
+    let client = RapidMLXClient(baseURL: URL(string: Settings.shared.rapidmlxURL)!)
     
     func generateStream(
         _ previousMessages: [Message],

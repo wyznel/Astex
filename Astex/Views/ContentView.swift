@@ -20,7 +20,7 @@ struct ContentView: View {
     @State private var isAResponseGenerating: Bool = false
     @State private var generationTask: Task<Void, Never>? = nil
     @State private var showDeleteChatButton: Bool = false
-    
+    @State private var selectedSettingsTab: Int = 1
     
     @ObservedObject private var settings = Settings.shared
     
@@ -52,70 +52,77 @@ struct ContentView: View {
     var body: some View {
         if !settings.isFirstOpen {
             NavigationSplitView {
-                ChatActionHandling(
-                 onNewChat: {
-                     generationTask?.cancel()
-                     generationTask = nil
-                     isAResponseGenerating = false
-                     withAni {
+                if !settings.settingsOpened {
+                    ChatActionHandling(
+                     onNewChat: {
+                         generationTask?.cancel()
+                         generationTask = nil
+                         isAResponseGenerating = false
+                         withAni {
+                             settings.settingsOpened = false
+                             activeChat = nil
+                             
+                             prompt = ""
+                             uploadedFiles = []
+                         }
+                         streamingChunks = []
+                         thinkingStreamingChunks = []
+                         chatWindowEmpty = true
+                     },
+                     onSelectChat: { chat in
                          settings.settingsOpened = false
-                         activeChat = nil
-                         
-                         prompt = ""
-                         uploadedFiles = []
-                     }
-                     streamingChunks = []
-                     thinkingStreamingChunks = []
-                     chatWindowEmpty = true
-                 },
-                 onSelectChat: { chat in
-                     settings.settingsOpened = false
-                     generationTask?.cancel()
-                     generationTask = nil
-                     isAResponseGenerating = false
-                     streamingChunks = []
-                     thinkingStreamingChunks = []
-                     withAni {
-                         activeChat = chat
-                         chatWindowEmpty = false
-                         
-                         prompt = ""
-                         uploadedFiles = []
-                     }
-                 },
-                 onDeleteChat: { chat in
-                     if chat == activeChat {
                          generationTask?.cancel()
                          generationTask = nil
                          isAResponseGenerating = false
                          streamingChunks = []
                          thinkingStreamingChunks = []
-                         withAni(doubled: true) {
-                             activeChat = nil
-                             chatWindowEmpty = true
+                         withAni {
+                             activeChat = chat
+                             chatWindowEmpty = false
                              
                              prompt = ""
                              uploadedFiles = []
                          }
-                     }
-                     modelContext.delete(chat)
-                 },
-                 getNewTitle: { chat in
-                     Task {
-                         let newTitle = await llm.generateTitle(chat.messages)
-                         chat.title = newTitle
-                         chat.titleHasBeenGenerated = true
-                     }
+                     },
+                     onDeleteChat: { chat in
+                         if chat == activeChat {
+                             generationTask?.cancel()
+                             generationTask = nil
+                             isAResponseGenerating = false
+                             streamingChunks = []
+                             thinkingStreamingChunks = []
+                             withAni(doubled: true) {
+                                 activeChat = nil
+                                 chatWindowEmpty = true
+                                 
+                                 prompt = ""
+                                 uploadedFiles = []
+                             }
+                         }
+                         modelContext.delete(chat)
+                     },
+                     getNewTitle: { chat in
+                         Task {
+                             let newTitle = await llm.generateTitle(chat.messages)
+                             chat.title = newTitle
+                             chat.titleHasBeenGenerated = true
+                         }
+                    }
+                    )
+                    .frame(minWidth: 180, maxWidth: 320)
+                    .navigationSplitViewColumnWidth(min: 180, ideal: 240, max: 320)
+                    .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+                } else {
+                    SettingsSidebarView(selectedTab: $selectedSettingsTab)
+                        .frame(minWidth: 180, maxWidth: 320)
+                        .navigationSplitViewColumnWidth(min: 180, ideal: 240, max: 320)
+                        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
                 }
-                )
-                .frame(minWidth: 180, maxWidth: 320)
-                .navigationSplitViewColumnWidth(min: 180, ideal: 240, max: 320)
-                .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
             } detail: {
-                if(!settings.settingsOpened) {
+                if !settings.settingsOpened {
                     mainBody()
-                }else{
-                    SettingsView()
+                } else {
+                    SettingsDetailView(selectedTab: selectedSettingsTab)
                 }
             }
             .navigationSplitViewStyle(.balanced)

@@ -5,7 +5,7 @@ import Foundation
 
 @MainActor
 class OllamaEngine {
-    let client = Client.default
+    let client = Client(host: URL(string: Settings.shared.ollamaURL)!, userAgent: "RapidMLX/1.0")
     
     func getAvailableModels() async -> [Client.ListModelsResponse.Model] {
         do{
@@ -76,8 +76,13 @@ class OllamaEngine {
     ) -> AsyncThrowingStream<StreamChunk, Error> {
         return AsyncThrowingStream<StreamChunk, Error> { continuation in
 
+            
             let task = Task { @MainActor in
+                defer {
+                    continuation.yield(.loading(false))
+                }
                 do {
+                    continuation.yield(.loading(true))
                     let sorted = previousMessages.sorted { $0.createdAt < $1.createdAt }
                     var messageHistory = sorted.compactMap { message -> Ollama.Chat.Message? in
                         if message.isAToolCall {

@@ -9,7 +9,7 @@ import SwiftUI
 
 class Utilities {
     
-    let client = Client.default
+    let client = Client(host: URL(string: Settings.shared.ollamaURL)!, userAgent: "RapidMLX/1.0")
 
     var AvailableModels: [String : Client.ListModelsResponse.Model] = [:]
     

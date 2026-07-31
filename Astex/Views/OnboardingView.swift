@@ -241,7 +241,7 @@ struct OnboardingView: View {
         @State private var temp_hash: String = ""
         @State private var temp_count: Int = 1
         
-        private var client = Client.default
+        private var client = Client(host: URL(string: Settings.shared.ollamaURL)!, userAgent: "RapidMLX/1.0")
         
         @Binding var PageIndex: Int
         

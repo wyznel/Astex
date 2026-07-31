@@ -8,7 +8,7 @@
 import SwiftUI
 import Ollama
 import Textual
-
+import RapidMLX
 
 // MARK: - ModelManagementView
 
@@ -23,8 +23,8 @@ struct ModelManagementView: View {
     
     // MARK: Properties
     
-    static var client = Client.default
-    
+    static var client = Client(host: URL(string: Settings.shared.ollamaURL)!, userAgent: "RapidMLX/1.0")
+    static var rapidmlxClient = RapidMLXClient(baseURL: URL(string: Settings.shared.rapidmlxURL)!)
     static var utilities = Utilities()
 
     @ObservedObject private var settings = Settings.shared
@@ -42,7 +42,7 @@ struct ModelManagementView: View {
             VStack {
                 ModelProvider()
                 
-                ModelTable(showTextInput: $showTextInput, models: $models) {
+                OllamaModelTable(showTextInput: $showTextInput, models: $models) {
                     await refreshAvailableModels()
                 }
             }
@@ -60,7 +60,7 @@ struct ModelManagementView: View {
     
     // MARK: - Model Table
     
-    struct ModelTable: View {
+    struct OllamaModelTable: View {
         @ObservedObject private var settings = Settings.shared
         // MARK: Column Descriptor
 
@@ -98,7 +98,7 @@ struct ModelManagementView: View {
         var body: some View {
             VStack {
                 HStack {
-                    InlineText(markdown: "**Models**")
+                    InlineText(markdown: "**Ollama Models**")
                         .padding(6)
                         .frame(alignment: .leading)
                     Spacer()
@@ -300,7 +300,7 @@ struct ModelManagementView: View {
                 } else {
                     Task {
                         do {
-                            let modelID: Model.ID = Model.ID(
+                            let modelID: Ollama.Model.ID = Ollama.Model.ID(
                                 rawValue: modelName
                             )!
                             if try await client.deleteModel(modelID) {
@@ -330,7 +330,7 @@ struct ModelManagementView: View {
                 Button("Delete model: \(modelName)", role: .destructive) {
                     Task {
                         do {
-                            let modelID = Model.ID(rawValue: modelName)
+                            let modelID = Ollama.Model.ID(rawValue: modelName)
                             if try await client.deleteModel(modelID!) {
                                 successInDeletionOfModel = true
                                 onDelete?()
@@ -615,7 +615,6 @@ struct ModelManagementView: View {
                                 print(error)
                             }
                         }
-                        
                         withAni {
                             downloadInProgress = true
                         }

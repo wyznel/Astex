@@ -38,7 +38,7 @@ struct ChatActionHandling: View {
         VStack {
             
             DefaultButton(text: "New Chat", imageShape: "square.and.pencil") {
-                withAni(doubled: true){
+                withAni {
                     onNewChat()
                 }
             }
@@ -54,7 +54,7 @@ struct ChatActionHandling: View {
             Spacer()
     
             DefaultButton(text: "Settings", imageShape: "gearshape"){
-                withAni(doubled: true){
+                withAni {
                     settings.settingsOpened.toggle()
                 }
             }
@@ -252,14 +252,17 @@ struct ChatActionHandling: View {
                     Text(text)
                     Spacer()
                 }
-                .contentShape(Capsule())
+                .contentShape(RoundedRectangle(cornerRadius: 12))
                 .frame(height: 30)
             }
-            .glassEffect(hovered
-                         ? Settings.shared.glassEffect.tint(Color.sepiaAccent.opacity(0.3))
-                         : Settings.shared.glassEffect.tint(Color.sepiaAccent.opacity(0.125)))
+            .glassEffect(
+                hovered
+                    ? Settings.shared.glassEffect.tint(Color.sepiaAccent.opacity(0.3))
+                    : Settings.shared.glassEffect.tint(Color.sepiaAccent.opacity(0.125)),
+                in: RoundedRectangle(cornerRadius: 12)
+            )
             .animation(.spring(duration: Settings.shared.animationDelay), value: hovered)
-            .clipShape(Capsule())
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             .buttonStyle(.plain)
             .onHover { isHovered in
                 hovered = isHovered
