@@ -8,9 +8,12 @@
 import SwiftUI
 import SwiftData
 import Sparkle
+import UserNotifications
 
 @main
 struct AstexApp: App {
+    
+    @AppStorage("IsFirstOpen") private var isFirstOpen: Bool = true
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -33,13 +36,28 @@ struct AstexApp: App {
         userDriverDelegate: nil
     )
     
+    init() {
+        NotificationManager.shared.requestAuthorization()
+    }
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .frame(minWidth: 1000, minHeight: 512)
-                .toolbar(removing: .title)
-                .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-                .tint(.sepiaAccent)
+            
+            if !isFirstOpen {
+                ContentView()
+                    .frame(minWidth: 1000, minHeight: 512)
+                    .toolbar(removing: .title)
+                    .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+                    .tint(.sepiaAccent)
+            }else {
+                OnboardingView()
+                    .frame(minWidth: 750, minHeight: 512)
+                    .toolbar(removing: .title)
+                    .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+                    .tint(.sepiaAccent)
+                    .windowResizeBehavior(.disabled)
+                    .preferredColorScheme(.dark)
+            }
         }
         .commands {
             CommandGroup(after: .appInfo) {

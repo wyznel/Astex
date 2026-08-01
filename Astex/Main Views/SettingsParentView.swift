@@ -15,7 +15,7 @@ struct SettingsSidebarView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            ChatActionHandling.DefaultButton(text: "Back to Chats", imageShape: "arrowshape.turn.up.backward") {
+            DefaultButton(text: "Back to Chats", imageShape: "arrowshape.turn.up.backward") {
                 withAni(doubled: true) {
                     settings.settingsOpened = false
                 }

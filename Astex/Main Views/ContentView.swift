@@ -50,90 +50,85 @@ struct ContentView: View {
     ])
 
     var body: some View {
-        if !settings.isFirstOpen {
-            NavigationSplitView {
-                if !settings.settingsOpened {
-                    ChatActionHandling(
-                     onNewChat: {
-                         generationTask?.cancel()
-                         generationTask = nil
-                         isAResponseGenerating = false
-                         withAni {
-                             settings.settingsOpened = false
-                             activeChat = nil
-                             
-                             prompt = ""
-                             uploadedFiles = []
-                         }
-                         streamingChunks = []
-                         thinkingStreamingChunks = []
-                         chatWindowEmpty = true
-                     },
-                     onSelectChat: { chat in
+        NavigationSplitView {
+            if !settings.settingsOpened {
+                ChatActionHandling(
+                 onNewChat: {
+                     generationTask?.cancel()
+                     generationTask = nil
+                     isAResponseGenerating = false
+                     withAni {
                          settings.settingsOpened = false
+                         activeChat = nil
+                         
+                         prompt = ""
+                         uploadedFiles = []
+                     }
+                     streamingChunks = []
+                     thinkingStreamingChunks = []
+                     chatWindowEmpty = true
+                 },
+                 onSelectChat: { chat in
+                     settings.settingsOpened = false
+                     generationTask?.cancel()
+                     generationTask = nil
+                     isAResponseGenerating = false
+                     streamingChunks = []
+                     thinkingStreamingChunks = []
+                     withAni {
+                         activeChat = chat
+                         chatWindowEmpty = false
+                         
+                         prompt = ""
+                         uploadedFiles = []
+                     }
+                 },
+                 onDeleteChat: { chat in
+                     if chat == activeChat {
                          generationTask?.cancel()
                          generationTask = nil
                          isAResponseGenerating = false
                          streamingChunks = []
                          thinkingStreamingChunks = []
-                         withAni {
-                             activeChat = chat
-                             chatWindowEmpty = false
+                         withAni(doubled: true) {
+                             activeChat = nil
+                             chatWindowEmpty = true
                              
                              prompt = ""
                              uploadedFiles = []
                          }
-                     },
-                     onDeleteChat: { chat in
-                         if chat == activeChat {
-                             generationTask?.cancel()
-                             generationTask = nil
-                             isAResponseGenerating = false
-                             streamingChunks = []
-                             thinkingStreamingChunks = []
-                             withAni(doubled: true) {
-                                 activeChat = nil
-                                 chatWindowEmpty = true
-                                 
-                                 prompt = ""
-                                 uploadedFiles = []
-                             }
-                         }
-                         modelContext.delete(chat)
-                     },
-                     getNewTitle: { chat in
-                         Task {
-                             let newTitle = await llm.generateTitle(chat.messages)
-                             chat.title = newTitle
-                             chat.titleHasBeenGenerated = true
-                         }
-                    }
-                    )
+                     }
+                     modelContext.delete(chat)
+                 },
+                 getNewTitle: { chat in
+                     Task {
+                         let newTitle = await llm.generateTitle(chat.messages)
+                         chat.title = newTitle
+                         chat.titleHasBeenGenerated = true
+                     }
+                }
+                )
+                .frame(minWidth: 180, maxWidth: 320)
+                .navigationSplitViewColumnWidth(min: 180, ideal: 240, max: 320)
+                .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+            } else {
+                SettingsSidebarView(selectedTab: $selectedSettingsTab)
                     .frame(minWidth: 180, maxWidth: 320)
                     .navigationSplitViewColumnWidth(min: 180, ideal: 240, max: 320)
                     .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-                } else {
-                    SettingsSidebarView(selectedTab: $selectedSettingsTab)
-                        .frame(minWidth: 180, maxWidth: 320)
-                        .navigationSplitViewColumnWidth(min: 180, ideal: 240, max: 320)
-                        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-                }
-            } detail: {
-                if !settings.settingsOpened {
-                    mainBody()
-                } else {
-                    SettingsDetailView(selectedTab: selectedSettingsTab)
-                }
             }
-            .navigationSplitViewStyle(.balanced)
-            .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { newValue in
-                Task {
-                    await llm.stopAllModels()
-                }
+        } detail: {
+            if !settings.settingsOpened {
+                mainBody()
+            } else {
+                SettingsDetailView(selectedTab: selectedSettingsTab)
             }
-        } else {
-            OnboardingView()
-                .windowResizeBehavior(.disabled)
+        }
+        .navigationSplitViewStyle(.balanced)
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { newValue in
+            Task {
+                await llm.stopAllModels()
+            }
         }
     }
  
@@ -585,6 +580,7 @@ struct ContentView: View {
                 .padding(.vertical, 10)
                 .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 10))
                 .frame(maxWidth: 500, alignment: .leading)
+                .textual.textSelection(.enabled)
             Spacer()
         }
         .opacity(0.4)

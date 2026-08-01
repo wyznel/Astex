@@ -209,13 +209,15 @@ extension Ollama.Client {
 
     /// Unloads a model. API doesn't provide any native way to do this.
     func unloadModel(model: String) -> Bool {
+        guard let executablePath = findExecutablePath(named: "ollama") else {
+            return false
+        }
         do {
             let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/local/bin/ollama")
+            process.executableURL = URL(fileURLWithPath: executablePath)
             process.arguments = ["stop", model]
-            process.standardOutput = nil
-            process.standardError = nil
-            process.standardInput = nil
+            process.standardOutput = Pipe()
+            process.standardError = Pipe()
             try process.run()
             process.waitUntilExit()
             return process.terminationStatus == 0

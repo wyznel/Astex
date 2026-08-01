@@ -24,7 +24,7 @@ class RapidMLXEngine {
                 }
                 do {
                     continuation.yield(.loading(true))
-                    try await client.serve(model: "gemma-4-e2b-4bit")
+                    try await client.serve(model: "tmax-9b")
                     
                     let sorted = previousMessages.sorted {
                         $0.createdAt < $1.createdAt

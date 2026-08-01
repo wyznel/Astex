@@ -13,6 +13,8 @@ class Settings: ObservableObject {
     @AppStorage("OllamaURL") var ollamaURL: String = "http://localhost:11434"
     @AppStorage("RapidMLXURL") var rapidmlxURL: String = "http://localhost:8000"
     
+    @AppStorage("IsRapidMLXInstalled") var isRapidMLXInstalled: Bool = false
+    @AppStorage("IsOllamaInstalled") var isOllamaInstalled: Bool = false
     
     @AppStorage("SuppressModelDeletionConfirmaton") var suppressModelDeletionConfirmation: Bool = false
     @AppStorage("ModelInformationShowSizeOnDisk") var showSizeOnDisk: Bool = true
@@ -20,10 +22,12 @@ class Settings: ObservableObject {
     @AppStorage("ModelInformationShowParameterSize") var showParameterSize: Bool = true
     @AppStorage("ModelProvider") var modelProvider: ModelEngines = .ollama
     
-    @AppStorage("SelectedModel") var selectedModel: String = "gemma-4-e2b-4bit"
-    @AppStorage("IsFirstOpen") var isFirstOpen: Bool = true
-    
-    @AppStorage("IsRapidMLXInstalled") var isRapidMLXInstalled: Bool = false
+    @AppStorage("SelectedModel") var selectedModel: String = "tmax-9b"
+    @AppStorage("IsFirstOpen") var isFirstOpen: Bool = true {
+        didSet {
+            objectWillChange.send()
+        }
+    }
     
     private init() {}
 }

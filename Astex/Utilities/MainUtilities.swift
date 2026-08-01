@@ -9,9 +9,9 @@ import SwiftUI
 
 class Utilities {
     
-    let client = Client(host: URL(string: Settings.shared.ollamaURL)!, userAgent: "RapidMLX/1.0")
+    let client = Ollama.Client(host: URL(string: Settings.shared.ollamaURL)!, userAgent: "Astex/1.0")
 
-    var AvailableModels: [String : Client.ListModelsResponse.Model] = [:]
+    var AvailableModels: [String : Ollama.Client.ListModelsResponse.Model] = [:]
     
     /// Load necessary values.
     init() {
@@ -23,7 +23,7 @@ class Utilities {
         }
     }
 
-    func getAvailableModels_OLLAMA() async -> [Client.ListModelsResponse.Model] {
+    func getAvailableModels_OLLAMA() async -> [Ollama.Client.ListModelsResponse.Model] {
         do {
             let response = try await client.listModels()
             return response.models
@@ -105,21 +105,41 @@ func withAni(doubled: Bool = false, customDuration: Double = 0 ,_ event: () -> V
 }
 
 
-// MARK: - Check if Ollama installed
+// MARK: - Executable helper
+
+func findExecutablePath(named name: String) -> String? {
+    var candidatePaths = [
+        "/usr/local/bin/\(name)",
+        "/opt/homebrew/bin/\(name)",
+        "/usr/bin/\(name)",
+        "\(NSHomeDirectory())/.local/bin/\(name)",
+        "\(NSHomeDirectory())/.ollama/bin/\(name)"
+    ]
+    
+    if let pathEnv = ProcessInfo.processInfo.environment["PATH"] {
+        for dir in pathEnv.split(separator: ":") {
+            let fullPath = "\(dir)/\(name)"
+            if !candidatePaths.contains(fullPath) {
+                candidatePaths.append(fullPath)
+            }
+        }
+    }
+    
+    for path in candidatePaths {
+        if FileManager.default.isExecutableFile(atPath: path) {
+            return path
+        }
+    }
+    return nil
+}
+
+
+// MARK: - Check if Ollama / RapidMLX installed
 
 func isOllamaInstalled() -> Bool {
-    do{
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/ollama")
-        process.arguments = ["--version"]
-        process.standardOutput = nil
-        process.standardError = nil
-        process.standardInput = nil
-        try process.run()
-        process.waitUntilExit()
-        return process.terminationStatus == 0
-    }catch {
-        print(error)
-    }
-    return false
+    return findExecutablePath(named: "ollama") != nil
+}
+
+func isRapidMLXInstalled() -> Bool {
+    return findExecutablePath(named: "rapid-mlx") != nil
 }

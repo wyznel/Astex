@@ -44,13 +44,15 @@ struct ModelManagementView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     ModelProvider()
-                    
-                    OllamaModelTable(showTextInput: $showTextInput, models: $models) {
-                        await refreshAvailableModels()
+                    if settings.isOllamaInstalled {
+                        OllamaModelTable(showTextInput: $showTextInput, models: $models) {
+                            await refreshAvailableModels()
+                        }
                     }
-                    
-                    RapidMLXModelTable(showPullInput: $showRapidMLXTextInput, rapidModels: $rapidModels) {
-                        await refreshRapidMLXModels()
+                    if settings.isRapidMLXInstalled {
+                        RapidMLXModelTable(showPullInput: $showRapidMLXTextInput, rapidModels: $rapidModels) {
+                            await refreshRapidMLXModels()
+                        }
                     }
                 }
                 .padding(.vertical)
