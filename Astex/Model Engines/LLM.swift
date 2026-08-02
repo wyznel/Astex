@@ -24,7 +24,7 @@ class LLM {
         toolRegistry: ToolRegistry? = nil
     ) -> AsyncThrowingStream<StreamChunk, Error> {
         
-        switch self.settings.modelProvider {
+        switch self.settings.selectedEngine {
         case .ollama:
             return self.ollamaClient.generateStream(
                 previousMessages,
@@ -41,7 +41,7 @@ class LLM {
     }
     
     public func generateTitle(_ messages: [Message]) async -> String {
-        switch self.settings.modelProvider {
+        switch self.settings.selectedEngine {
         case .ollama :
             return await self.ollamaClient.generateTitle(messages)
         case .rapidMLX:

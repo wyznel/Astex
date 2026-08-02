@@ -8,22 +8,27 @@
 import SwiftUI
 import Ollama
 import RapidMLX
+import Textual
 
 struct DownloadModelView: View {
     @Binding var PageIndex: Int
     @ObservedObject var settings = Settings.shared
     
     @State private var isContinueButtonHovered: Bool = false
+    @State private var isContinueButtonDisabled = true
     @State private var isSkipButtonHovered: Bool = false
     
     var body: some View {
         VStack(spacing: 20) {
+            Text("Download a model")
+                .font(.alanSans(25))
+                .fontWeight(.bold)
             HStack(spacing: 20) {
                 if settings.isOllamaInstalled {
-                    OllamaDownloadModelView(PageIndex: $PageIndex)
+                    OllamaDownloadModelView(PageIndex: $PageIndex, isContinueButtonDisabled: $isContinueButtonDisabled)
                 }
                 if settings.isRapidMLXInstalled {
-                    RapidMLXDownloadModelView(PageIndex: $PageIndex)
+                    RapidMLXDownloadModelView(PageIndex: $PageIndex, isContinueButtonDisabled: $isContinueButtonDisabled)
                 }
             }
             
@@ -39,7 +44,9 @@ struct DownloadModelView: View {
                 .multilineTextAlignment(.center)
                 
             Button {
-                sendNotification(title: "Model has finished downloading", body: "The model: 'tinyllama:1.1b' has finished downloading.")
+                withAni {
+                    settings.isFirstOpen = false
+                }
             } label: {
                 HStack {
                     Text("Continue")
@@ -49,12 +56,13 @@ struct DownloadModelView: View {
                     Image(systemName: "arrow.right")
                 }
             }
+            .disabled(isContinueButtonDisabled)
             .borderBeam(
                 border: .white,
                 beam: [.orange],
                 beamBlur: 5,
                 cornerRadius: 20,
-                isEnabled: !isContinueButtonHovered
+                isEnabled: !isContinueButtonDisabled
             )
             .glassEffect(
                 isContinueButtonHovered
@@ -64,7 +72,9 @@ struct DownloadModelView: View {
                 in: Capsule()
             )
             .onHover { isHovered in
-                isContinueButtonHovered = isHovered
+                if !isContinueButtonDisabled {
+                    isContinueButtonHovered = isHovered
+                }
             }
             .animation(.spring(duration: 0.25, bounce: 0.5), value: isContinueButtonHovered)
             .clipShape(Capsule())
@@ -73,7 +83,9 @@ struct DownloadModelView: View {
         .overlay(alignment: .topTrailing) {
             /// Skip ahead
             Button {
-                
+                withAni {
+                    settings.isFirstOpen = false
+                }
             }label: {
                 Text("Skip")
                     .font(.alanSans(15))
@@ -107,6 +119,7 @@ struct DownloadModelView: View {
 
 private struct OllamaDownloadModelView: View {
     @Binding var PageIndex: Int
+    @Binding var isContinueButtonDisabled: Bool
     
     @State private var isCardHovered: Bool = false
     
@@ -134,11 +147,11 @@ private struct OllamaDownloadModelView: View {
                         .font(.system(size: 36, weight: .medium))
                         .foregroundStyle(Color.sepiaAccent)
                     
-                    Text("Pull Model")
+                    Text("Pull Model via Ollama")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(Color.sepiaText)
                     
-                    Text("Download a model from the Ollama library")
+                    InlineText(markdown: "See [Ollama.com](https://ollama.com/search) to browse available models.")
                         .font(.system(size: 11))
                         .foregroundStyle(Color.sepiaText.opacity(0.5))
                 }
@@ -156,6 +169,9 @@ private struct OllamaDownloadModelView: View {
                     .disabled(downloadInProgress)
                 
                 Button {
+                    withAni {
+                        isContinueButtonDisabled = false
+                    }
                     Task {
                         do {
                             modelName = input_field
@@ -176,6 +192,7 @@ private struct OllamaDownloadModelView: View {
                                 
                                 if progressText.contains("success") {
                                     isSuccess = true
+                                    sendNotification(title: "Model Downloaded", body: "\(modelName) has finished downloading")
                                 }
                                 
                                 if let total = prog.total, let completed = prog.completed {
@@ -233,13 +250,6 @@ private struct OllamaDownloadModelView: View {
             
             if isSuccess {
                 Text("Finished downloading model: \(modelName)")
-                Button {
-                    withAni {
-                        downloadInProgress = false
-                    }
-                } label: {
-                    Text("Done")
-                }
                 .task {
                     withAni {
                         downloadInProgress = false
@@ -263,6 +273,7 @@ private struct OllamaDownloadModelView: View {
 private struct RapidMLXDownloadModelView: View {
     
     @Binding var PageIndex: Int
+    @Binding var isContinueButtonDisabled: Bool
     
     @State private var input_field = ""
     @State private var modelName = ""
@@ -271,6 +282,8 @@ private struct RapidMLXDownloadModelView: View {
     @State private var downloadInProgress: Bool = false
     @State private var isSuccess: Bool = false
     @State private var isCardHovered: Bool = false
+    
+    
     var body: some View {
         VStack(spacing: 16) {
             // Header area with icon and close button
@@ -280,11 +293,11 @@ private struct RapidMLXDownloadModelView: View {
                         .font(.system(size: 36, weight: .medium))
                         .foregroundStyle(Color.sepiaAccent)
                     
-                    Text("Pull RapidMLX Model")
+                    Text("Pull Model via RapidMLX")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(Color.sepiaText)
                     
-                    Text("Download a model using RapidMLX")
+                    InlineText(markdown: "See [models.rapidmlx.com](https://models.rapidmlx.com) to browse available models.")
                         .font(.system(size: 11))
                         .foregroundStyle(Color.sepiaText.opacity(0.5))
                 }
@@ -305,11 +318,12 @@ private struct RapidMLXDownloadModelView: View {
                     modelName = input_field
                     errorMessage = nil
                     withAni {
+                        isContinueButtonDisabled = false
                         downloadInProgress = true
                     }
                     Task {
                         do {
-                            try await ModelManagementView.rapidmlxClient.pull(
+                            try await ModelManagementView.utilities.rapidmlx_client.pull(
                                 alias: modelName,
                                 hfRepo: nil
                             )
@@ -317,6 +331,7 @@ private struct RapidMLXDownloadModelView: View {
                                 isSuccess = true
                                 downloadInProgress = false
                             }
+                            sendNotification(title: "Model Downloaded", body: "\(modelName) has finished downloading")
                         } catch {
                             withAni {
                                 errorMessage = error.localizedDescription
@@ -363,12 +378,6 @@ private struct RapidMLXDownloadModelView: View {
                     Text("Finished downloading model: \(modelName)")
                         .font(.system(size: 12))
                         .foregroundStyle(Color.sepiaText)
-                    
-                    Button {
-                        
-                    } label: {
-                        Text("Done")
-                    }
                 }
             }
         }

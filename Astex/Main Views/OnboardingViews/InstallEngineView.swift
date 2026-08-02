@@ -21,6 +21,11 @@ struct InstallEngineView: View {
     
     var body: some View {
         VStack(spacing: 20) {
+            
+            Text("Download a model engine")
+                .font(.alanSans(25))
+                .fontWeight(.bold)
+            
             HStack(spacing: 30) {
                 OllamaCard(isContinueButtonDisabled: $isContinueButtonDisabled)
                 RapidMLXCard(isContinueButtonDisabled: $isContinueButtonDisabled)
@@ -85,7 +90,7 @@ struct InstallEngineView: View {
         @State private var isDownloadButtonHovered: Bool = false
         var body: some View {
             VStack {
-               Image("ollama-svg")
+                Image("ollama-svg")
                     .resizable()
                     .renderingMode(.template)
                     .scaledToFit()

@@ -31,7 +31,9 @@ struct ContentView: View {
     @State private var thinkingStreamingChunks: [String] = []
     @State private var toolCallingChunks: [String] = []
     @State private var isModelLoading: Bool = false
-    @State private var availableModels: [String] = []
+    
+    @State private var ollamaAvailableModels: [String] = []
+    @State private var rapidMLXAvailableModels: [String] = []
     
     @State private var showFileImporter: Bool = false
     
@@ -477,7 +479,7 @@ struct ContentView: View {
                     Spacer()
                     
                     
-                    Picker("Engine", selection: $settings.modelProvider) {
+                    Picker("Engine", selection: $settings.selectedEngine) {
                         ForEach(ModelEngines.allCases, id: \.self) { provider in
                             Text(provider.rawValue)
                                 .tag(provider)
@@ -490,8 +492,8 @@ struct ContentView: View {
                     .tint(.sepiaAccent)
                     .offset(y: -2)
                     
-                    Picker("Models", selection: $settings.selectedModel) {
-                        ForEach(availableModels, id: \.self)  { model in
+                    Picker("Models", selection: settings.selectedEngine == .ollama ? $settings.selectedModel : $settings.rapidMLXSelectedModel) {
+                        ForEach(settings.selectedEngine == .ollama ? ollamaAvailableModels : rapidMLXAvailableModels, id: \.self)  { model in
                             Text(model)
                                 .tag(model)
                         }
@@ -503,7 +505,8 @@ struct ContentView: View {
                     .tint(.sepiaAccent)
                     .onAppear {
                         Task {
-                            availableModels = await utilities.getAvailableModelsNAME_ONLY_OLLAMA()
+                            ollamaAvailableModels = await utilities.getAvailableModelsNAME_ONLY_OLLAMA()
+                            rapidMLXAvailableModels = await utilities.getRapidMLXModels_NAME_ONLY()
                         }
                     }
                     .offset(y: -2)

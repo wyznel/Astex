@@ -23,7 +23,7 @@ struct SettingsTabView: View {
                 settings.showFormat = true
                 settings.showParameterSize = true
                 settings.isFirstOpen = true
-                settings.modelProvider = .ollama
+                settings.selectedEngine = .ollama
                 
             }label: {
                 Label("Reset to all app defaults.", systemImage: "arrow.up.trash")

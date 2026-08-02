@@ -31,7 +31,7 @@ struct OnboardingView: View {
                     .animation(.spring(duration: 0.5, bounce: 0.5), value: ShowInstallEngineView)
             case 3:
                 DownloadModelView(PageIndex: $PageIndex)
-                
+            
             default: EmptyView()
             }
             
@@ -60,7 +60,7 @@ struct OnboardingView: View {
     @ViewBuilder
     func ProgressDots() -> some View {
         HStack(spacing: 10){
-            ForEach(1..<4, id: \.self){ index in
+            ForEach(1..<5, id: \.self){ index in
                 Circle()
                     .frame(width: 5, height: 5)
                     .foregroundStyle(

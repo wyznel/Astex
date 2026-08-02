@@ -6,11 +6,12 @@
 //
 import Ollama
 import SwiftUI
+import RapidMLX
 
 class Utilities {
     
     let client = Ollama.Client(host: URL(string: Settings.shared.ollamaURL)!, userAgent: "Astex/1.0")
-
+    let rapidmlx_client = RapidMLXClient(baseURL: URL(string: Settings.shared.rapidmlxURL)!)
     var AvailableModels: [String : Ollama.Client.ListModelsResponse.Model] = [:]
     
     /// Load necessary values.
@@ -39,6 +40,16 @@ class Utilities {
         return res.map(\.name) as [String]
     }
 
+    func getRapidMLXModels_NAME_ONLY() async -> [String] {
+        do {
+            let models = try await rapidmlx_client.getModels()
+            return models.map(\.alias)
+        }catch {
+            print(error)
+        }
+        return []
+    }
+    
     func getModelInfo(model: String) async -> [String: Any] {
         let models = await getAvailableModels_OLLAMA()
         let matchingModel = models.first(where: { $0.name == model })

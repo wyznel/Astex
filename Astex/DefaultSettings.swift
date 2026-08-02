@@ -20,9 +20,11 @@ class Settings: ObservableObject {
     @AppStorage("ModelInformationShowSizeOnDisk") var showSizeOnDisk: Bool = true
     @AppStorage("ModelInformationShowFormat") var showFormat: Bool = true
     @AppStorage("ModelInformationShowParameterSize") var showParameterSize: Bool = true
-    @AppStorage("ModelProvider") var modelProvider: ModelEngines = .ollama
+    @AppStorage("ModelProvider") var selectedEngine: ModelEngines = .ollama
     
-    @AppStorage("SelectedModel") var selectedModel: String = "tmax-9b"
+    @AppStorage("SelectedModel") var selectedModel: String = ""
+    @AppStorage("RapidMLXSelectedModel") var rapidMLXSelectedModel: String = ""
+    
     @AppStorage("IsFirstOpen") var isFirstOpen: Bool = true {
         didSet {
             objectWillChange.send()

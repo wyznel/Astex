@@ -24,7 +24,6 @@ struct ModelManagementView: View {
     // MARK: Properties
     
     static var client = Client(host: URL(string: Settings.shared.ollamaURL)!, userAgent: "RapidMLX/1.0")
-    static var rapidmlxClient = RapidMLXClient(baseURL: URL(string: Settings.shared.rapidmlxURL)!)
     static var utilities = Utilities()
 
     @ObservedObject private var settings = Settings.shared
@@ -288,37 +287,15 @@ struct ModelManagementView: View {
 
                         // Data rows
                         ForEach(rapidModels, id: \.alias) { model in
-                            let displayName = model.alias.isEmpty ? model.hfRepo : model.alias
-                            GridRow {
-                                ModelToggle(
-                                    modelName: displayName,
-                                    selectedModel: $selectedModel
-                                )
-                                Text(model.hfRepo)
-                                Text(model.size)
-                                Text(model.modified)
-
-                                ModelDeleteButton(
-                                    modelName: displayName,
-                                    isDisabled: selectedModel == displayName,
-                                    onDeleteAsync: {
-                                        let aliasParam = model.alias.isEmpty ? nil : model.alias
-                                        let repoParam = model.alias.isEmpty ? model.hfRepo : nil
-                                        return try await ModelManagementView.rapidmlxClient.delete(alias: aliasParam, hfRepo: repoParam)
-                                    },
-                                    onDelete: {
-                                        withAni {
-                                            rapidModels.removeAll { $0.alias == model.alias && $0.hfRepo == model.hfRepo }
-                                        }
+                            RapidMLXModelRow(
+                                model: model,
+                                selectedModel: $selectedModel,
+                                onDeleted: {
+                                    withAni {
+                                        rapidModels.removeAll { $0.alias == model.alias && $0.hfRepo == model.hfRepo }
                                     }
-                                )
-                            }
-                            .padding(.vertical, 2)
-                            .background(
-                                Color.sepiaAccent.opacity(selectedModel == displayName ? 0.1 : 0.0),
-                                in: RoundedRectangle(cornerRadius: 6)
+                                }
                             )
-                            Divider()
                         }
                     }
                     .padding(.leading, 12)
@@ -345,6 +322,47 @@ struct ModelManagementView: View {
             }
             .contentShape(Rectangle())
             .frame(maxWidth: .infinity, alignment: .top)
+        }
+    }
+
+    struct RapidMLXModelRow: View {
+        let model: RapidMLXClient.RapidModel
+        @Binding var selectedModel: String?
+        var onDeleted: () -> Void
+
+        private var displayName: String { model.alias.isEmpty ? model.hfRepo : model.alias }
+
+        var body: some View {
+            VStack(spacing: 0) {
+                GridRow {
+                    ModelToggle(
+                        modelName: displayName,
+                        selectedModel: $selectedModel
+                    )
+                    Text(model.hfRepo)
+                    Text(model.size)
+                    Text(model.modified)
+
+                    ModelDeleteButton(
+                        modelName: displayName,
+                        isDisabled: selectedModel == displayName,
+                        onDeleteAsync: {
+                            let aliasParam = model.alias.isEmpty ? nil : model.alias
+                            let repoParam = model.alias.isEmpty ? model.hfRepo : nil
+                            return try await ModelManagementView.utilities.rapidmlx_client.delete(alias: aliasParam, hfRepo: repoParam)
+                        },
+                        onDelete: {
+                            onDeleted()
+                        }
+                    )
+                }
+                .padding(.vertical, 2)
+                .background(
+                    Color.sepiaAccent.opacity(selectedModel == displayName ? 0.1 : 0.0),
+                    in: RoundedRectangle(cornerRadius: 6)
+                )
+                Divider()
+            }
         }
     }
     
@@ -905,7 +923,7 @@ struct ModelManagementView: View {
                         }
                         Task {
                             do {
-                                try await ModelManagementView.rapidmlxClient.pull(
+                                try await utilities.rapidmlx_client.pull(
                                     alias: modelName,
                                     hfRepo: nil
                                 )
@@ -1001,10 +1019,11 @@ struct ModelManagementView: View {
     
     func refreshRapidMLXModels() async {
         do {
-            rapidModels = try await ModelManagementView.rapidmlxClient.getModels()
+            rapidModels = try await ModelManagementView.utilities.rapidmlx_client.getModels()
         } catch {
             print("Failed to fetch RapidMLX models: \(error)")
             rapidModels = []
         }
     }
 }
+

@@ -13,7 +13,7 @@ import UserNotifications
 @main
 struct AstexApp: App {
     
-    @AppStorage("IsFirstOpen") private var isFirstOpen: Bool = true
+    @ObservedObject private var settings = Settings.shared
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -43,21 +43,23 @@ struct AstexApp: App {
     var body: some Scene {
         WindowGroup {
             
-            if !isFirstOpen {
-                ContentView()
-                    .frame(minWidth: 1000, minHeight: 512)
-                    .toolbar(removing: .title)
-                    .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-                    .tint(.sepiaAccent)
-            }else {
-                OnboardingView()
-                    .frame(minWidth: 750, minHeight: 512)
-                    .toolbar(removing: .title)
-                    .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-                    .tint(.sepiaAccent)
-                    .windowResizeBehavior(.disabled)
-                    .preferredColorScheme(.dark)
+            Group {
+                if !settings.isFirstOpen {
+                    ContentView()
+                        .frame(minWidth: 1000, minHeight: 512)
+                        .toolbar(removing: .title)
+                        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+                        .tint(.sepiaAccent)
+                } else {
+                    OnboardingView()
+                        .frame(minWidth: 750, minHeight: 512)
+                        .toolbar(removing: .title)
+                        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+                        .tint(.sepiaAccent)
+                        .windowResizeBehavior(.disabled)
+                }
             }
+            .preferredColorScheme(settings.isFirstOpen ? .dark : nil)
         }
         .commands {
             CommandGroup(after: .appInfo) {

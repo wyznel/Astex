@@ -30,7 +30,7 @@ struct ModelProvider: View {
                     withAni {
                         clicked = true
                     }
-                    settings.modelProvider = .ollama
+                    settings.selectedEngine = .ollama
                     clicked = false
                 }label: {
                     Image(systemName: "arrow.trianglehead.counterclockwise")
@@ -42,7 +42,7 @@ struct ModelProvider: View {
                     Text("Reset to default model engine (Ollama)")
                         .fixedSize()
                 }
-                Picker("Engine", selection: $settings.modelProvider) {
+                Picker("Engine", selection: $settings.selectedEngine) {
                     ForEach(providers, id: \.self) { provider in
                         Text(provider.rawValue)
                             .tag(provider)
