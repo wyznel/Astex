@@ -240,7 +240,7 @@ struct ModelManagementView: View {
         @Binding var rapidModels: [RapidMLXClient.RapidModel]
         var refreshRapidMLXModels: () async -> Void
         
-        @State private var selectedModel: String? = Settings.shared.selectedModel
+        @State private var selectedModel: String? = Settings.shared.rapidMLXSelectedModel
         
         var body: some View {
             VStack {
@@ -310,11 +310,11 @@ struct ModelManagementView: View {
                     in: .rect(cornerRadius: 12)
                 )
                 .onChange(of: selectedModel) {
-                    Settings.shared.selectedModel = selectedModel ?? ""
-                    print("Selected Model: \(Settings.shared.selectedModel)")
+                    Settings.shared.rapidMLXSelectedModel = selectedModel ?? ""
+                    print("Selected RapidMLX Model: \(Settings.shared.rapidMLXSelectedModel)")
                 }
-                .onChange(of: settings.selectedModel) {
-                    selectedModel = settings.selectedModel
+                .onChange(of: settings.rapidMLXSelectedModel) {
+                    selectedModel = settings.rapidMLXSelectedModel
                 }
             }
             .task {
@@ -332,37 +332,36 @@ struct ModelManagementView: View {
 
         private var displayName: String { model.alias.isEmpty ? model.hfRepo : model.alias }
 
+        @ViewBuilder
         var body: some View {
-            VStack(spacing: 0) {
-                GridRow {
-                    ModelToggle(
-                        modelName: displayName,
-                        selectedModel: $selectedModel
-                    )
-                    Text(model.hfRepo)
-                    Text(model.size)
-                    Text(model.modified)
-
-                    ModelDeleteButton(
-                        modelName: displayName,
-                        isDisabled: selectedModel == displayName,
-                        onDeleteAsync: {
-                            let aliasParam = model.alias.isEmpty ? nil : model.alias
-                            let repoParam = model.alias.isEmpty ? model.hfRepo : nil
-                            return try await ModelManagementView.utilities.rapidmlx_client.delete(alias: aliasParam, hfRepo: repoParam)
-                        },
-                        onDelete: {
-                            onDeleted()
-                        }
-                    )
-                }
-                .padding(.vertical, 2)
-                .background(
-                    Color.sepiaAccent.opacity(selectedModel == displayName ? 0.1 : 0.0),
-                    in: RoundedRectangle(cornerRadius: 6)
+            GridRow {
+                ModelToggle(
+                    modelName: displayName,
+                    selectedModel: $selectedModel
                 )
-                Divider()
+                Text(model.hfRepo)
+                Text(model.size)
+                Text(model.modified)
+
+                ModelDeleteButton(
+                    modelName: displayName,
+                    isDisabled: selectedModel == displayName,
+                    onDeleteAsync: {
+                        let aliasParam = model.alias.isEmpty ? nil : model.alias
+                        let repoParam = model.alias.isEmpty ? model.hfRepo : nil
+                        return try await ModelManagementView.utilities.rapidmlx_client.delete(alias: aliasParam, hfRepo: repoParam)
+                    },
+                    onDelete: {
+                        onDeleted()
+                    }
+                )
             }
+            .padding(.vertical, 2)
+            .background(
+                Color.sepiaAccent.opacity(selectedModel == displayName ? 0.1 : 0.0),
+                in: RoundedRectangle(cornerRadius: 6)
+            )
+            Divider()
         }
     }
     
