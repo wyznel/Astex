@@ -7,8 +7,8 @@
 - [X] Implement compatibility with thinking models.
 - [X] Add autoupdater using Sparkle.
 - [X] Fix quarantine & Gatekeeper flagging. 
-- [ ] Model Management Tab
-    - [ ] Show available models from all providers
+- [x] Model Management Tab
+    - [x] Show available models from all providers
     - [X] Delete models
     - [X] Unload models from memory.
     - [X] Pull models from Ollama
