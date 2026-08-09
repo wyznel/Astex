@@ -6,10 +6,7 @@
 	<string>https://wyznel.github.io/Astex/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>mwt1ZQKCfkSILiwo+yEktSYbjeCpVr/g0jcihiTXr1Y=</string>
-	<key>UIAppFonts</key>
-	<array>
-		<string>AlanSans-VariableFont_wght.ttf</string>
-		<string>Fonts/AlanSans-VariableFont_wght.ttf</string>
-	</array>
+	<key>ATSApplicationFontsPath</key>
+	<string>Fonts</string>
 </dict>
 </plist>
