@@ -128,6 +128,8 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { newValue in
+            guard let window = newValue.object as? NSWindow, window.isMainWindow || window.isKeyWindow else { return }
+            
             Task {
                 await llm.stopAllModels()
             }
@@ -214,11 +216,9 @@ struct ContentView: View {
                     .opacity(chatWindowEmpty ? 1 : 0)
                     .foregroundStyle(Color.sepiaText)
                     .animation(.spring(duration: settings.animationDelay * 2), value: prompt.isEmpty)
-                GlassEffectContainer {
-                    userInputArea()
-                }
-                .padding(.bottom, 12)
-                .animation(.spring(duration: settings.animationDelay * 2), value: prompt.isEmpty)
+                userInputArea()
+                    .padding(.bottom, 12)
+                    .animation(.spring(duration: settings.animationDelay * 2), value: prompt.isEmpty)
             }
             .padding(.horizontal, 10)
             .padding(.bottom, 20)
@@ -542,6 +542,13 @@ struct ContentView: View {
             .frame(maxWidth: prompt.isEmpty ? 400 : 750)
             .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 8))
         }
+        .borderBeam(
+            border: .white,
+            beam: [.orange],
+            beamBlur: 5,
+            cornerRadius: 8,
+            isEnabled: chatWindowEmpty && prompt.isEmpty
+        )
         .offset(y: chatWindowEmpty ? 0 : -20)
         .fileImporter(
             isPresented: $showFileImporter,

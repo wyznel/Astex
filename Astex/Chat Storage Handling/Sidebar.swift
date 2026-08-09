@@ -1,5 +1,5 @@
 //
-//  ChatHandling.swift
+//  Sidebar.swift
 //  Astex
 //
 //  Created by Ben Herbert on 16/06/2026.
@@ -131,6 +131,7 @@ struct ChatActionHandling: View {
         var chat: Chat
         
         @State private var showDeleteChatButton: Bool = false
+        @State private var showThreeDots: Bool = false
         
         var onSelectChat: (Chat) -> Void
         var onDeleteChat: (Chat) -> Void
@@ -147,35 +148,34 @@ struct ChatActionHandling: View {
                             .truncationMode(.tail)
                             .allowsHitTesting(false)
                         Spacer()
+                        
+                        if showThreeDots {
+                            Menu {
+                                Button("Edit title", systemImage: "pencil") {
+                                    editTitle()
+                                }
+                                .labelStyle(.titleAndIcon)
+                                Button("Generate title", systemImage: "bolt.horizontal") {
+                                    getNewTitle(chat)
+                                }
+                                .labelStyle(.titleAndIcon)
+                                Divider()
+                                Button("Delete...", systemImage: "delete.backward") {
+                                    onDeleteChat(chat)
+                                }
+                                .labelStyle(.titleAndIcon)
+                            } label: {
+                                Image(systemName: "ellipsis")
+                                    .font(.title3)
+                            }
+                            .menuStyle(.borderlessButton)
+                            .labelStyle(.titleAndIcon)
+                        }
                     }.contentShape(Rectangle())
                 }
-                .simultaneousGesture(
-                    LongPressGesture(minimumDuration: 0.25)
-                        .onEnded { _ in
-                            Task {
-                            
-                                if showDeleteChatButton {
-                                    withAni(doubled: true) {
-                                        showDeleteChatButton = false
-                                    }
-                                }else{
-                                    withAni(doubled: true){
-                                        showDeleteChatButton = true
-                                    }
-                                }
-                                
-                                if !showDeleteChatButton { return }
-                                
-                                try? await Task.sleep(for: .seconds(5))
-                                
-                                if showDeleteChatButton {
-                                    withAni(doubled: true){
-                                        showDeleteChatButton = false
-                                    }
-                                }
-                            }
-                        }
-                )
+                .onHover { hovered in
+                    showThreeDots = hovered && !showDeleteChatButton
+                }
                 .highPriorityGesture(
                     TapGesture()
                         .onEnded{_ in
@@ -185,34 +185,21 @@ struct ChatActionHandling: View {
                         }
                 )
                 .contextMenu(menuItems: {
-                    Button {
+                    Button("Edit title", systemImage: "pencil") {
                         editTitle()
-                    } label: {
-                        Label("Edit Title", systemImage: "keyboard")
                     }
-                    Button {
+                    .labelStyle(.titleAndIcon)
+                    Button("Generate title", systemImage: "bolt.horizontal") {
                         getNewTitle(chat)
-                    } label: {
-                        Label("Generate Title", systemImage: "pencil")
                     }
+                    .labelStyle(.titleAndIcon)
                     Divider()
-                    Button {
+                    Button("Delete", systemImage: "delete.backward") {
                         onDeleteChat(chat)
-                    }label: {
-                        Label("Delete...", systemImage: "delete.backward")
                     }
+                    .labelStyle(.titleAndIcon)
                 })
                 .buttonStyle(ChatRowButtonStyle())
-                
-                if showDeleteChatButton {
-                    Button {
-                        onDeleteChat(chat)
-                    } label: {
-                        Image(systemName: "trash")
-                            .foregroundStyle(Color.red)
-                    }
-                    .contentShape(Rectangle())
-                }
             }
         }
     }

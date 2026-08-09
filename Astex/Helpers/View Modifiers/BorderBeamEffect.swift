@@ -42,9 +42,10 @@ struct BorderBeamEffect: ViewModifier {
     
     func body(content: Content) -> some View {
         content
-            .background {
+            .overlay {
                 if isEnabled{
                     BorderBeamView()
+                        .allowsHitTesting(false)
                 }
             }
     }
