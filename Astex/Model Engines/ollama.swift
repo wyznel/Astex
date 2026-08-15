@@ -1,11 +1,9 @@
 import Ollama
-import SwiftUI
 import Foundation
 
 
-@MainActor
 class OllamaEngine {
-    let client = Client(host: URL(string: Settings.shared.ollamaURL)!, userAgent: "RapidMLX/1.0")
+    let client = Utilities.shared.client
     
     func getAvailableModels() async -> [Client.ListModelsResponse.Model] {
         do{
@@ -17,11 +15,9 @@ class OllamaEngine {
         return []
     }
     
-    @State public var isResponseFinished: Bool = true
-    
     // MARK: - Generate Title
     
-    func generateTitle(_ previousMessages: [Message]) async -> String {
+    func generateTitle(_ previousMessages: [Message], model: String) async -> String {
         do {
             let promptForTitleGen = Message(isUser: true, response:
                 """
@@ -57,7 +53,7 @@ class OllamaEngine {
                 }
             }
             let response = try await client.chat(
-                model: "\(Settings.shared.selectedModel)",
+                model: "\(model)",
                 messages: messageHistory
             )
             return response.message.content
@@ -71,6 +67,7 @@ class OllamaEngine {
     
     func generateStream(
         _ previousMessages: [Message],
+        model: String,
         fileContext: String? = nil,
         toolRegistry: ToolRegistry? = nil
     ) -> AsyncThrowingStream<StreamChunk, Error> {
@@ -124,7 +121,7 @@ class OllamaEngine {
                     // Query model capabilities once before the loop to avoid
                     // repeated showModel HTTP requests on every iteration.
                     let capabilities = await client.modelCapabilities(
-                        model: Settings.shared.selectedModel
+                        model: model
                     )
                     let activeToolProtocols: [any ToolProtocol]? = (capabilities.supportsTools && toolRegistry != nil && !(toolRegistry!.isEmpty))
                         ? toolRegistry!.allToolProtocols : nil
@@ -138,7 +135,7 @@ class OllamaEngine {
                         remainingRounds -= 1
 
                         let stream = try client.chatStream(
-                            model: "\(Settings.shared.selectedModel)",
+                            model: "\(model)",
                             messages: messageHistory,
                             tools: activeToolProtocols,
                             think: capabilities.supportsThinking,

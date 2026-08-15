@@ -141,6 +141,3 @@ struct SpinningLoaderView: View {
     }
 }
 
-#Preview {
-    SpinningLoaderView()
-}

@@ -7,15 +7,13 @@
 
 import Foundation
 import RapidMLX
-import SwiftUI
 
 class RapidMLXEngine {
-    let client = Utilities().rapidmlx_client
-    
-    @ObservedObject var settings = Settings.shared
+    let client = Utilities.shared.rapidmlx_client
     
     func generateStream(
         _ previousMessages: [Message],
+        model: String,
         fileContext: String? = nil,
         toolRegistry: ToolRegistry? = nil
     ) -> AsyncThrowingStream<StreamChunk, Error> {
@@ -27,7 +25,7 @@ class RapidMLXEngine {
                 }
                 do {
                     continuation.yield(.loading(true))
-                    try await client.serve(model: settings.rapidMLXSelectedModel )
+                    try await client.serve(model: model)
                     
                     let sorted = previousMessages.sorted {
                         $0.createdAt < $1.createdAt

@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-var utilities = Utilities()
-
 /// Second page of setup
 struct InstallEngineView: View {
     
@@ -186,14 +184,14 @@ struct InstallEngineView: View {
                     .fontWeight(.semibold)
                 
                 VStack(spacing: 10) {
-                    Text("RapidMLX is the recommended choice for running LLMs on Mac")
+                    Text("RapidMLX is the recommended choice for running LLMs on Mac. The Terminal & Server version is required.")
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
                         .multilineTextAlignment(.center)
                         
                     if !isAlreadyInstalled {
                         Button {
-                            openURL(URL(string: "https://ollama.com/download")!)
+                            openURL(URL(string: "https://rapidmlx.com/download")!)
                         } label: {
                             HStack {
                                 Text("Open Download Page")

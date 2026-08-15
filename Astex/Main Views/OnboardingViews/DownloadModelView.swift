@@ -136,7 +136,7 @@ private struct OllamaDownloadModelView: View {
     @State private var temp_hash: String = ""
     @State private var temp_count: Int = 1
     
-    var utilities = Utilities()
+    let utilities = Utilities.shared
     
     var body: some View {
         VStack(spacing: 16) {
@@ -323,7 +323,7 @@ private struct RapidMLXDownloadModelView: View {
                     }
                     Task {
                         do {
-                            try await ModelManagementView.utilities.rapidmlx_client.pull(
+                            try await Utilities.shared.rapidmlx_client.pull(
                                 alias: modelName,
                                 hfRepo: nil
                             )

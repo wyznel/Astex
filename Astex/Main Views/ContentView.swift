@@ -24,7 +24,7 @@ struct ContentView: View {
     
     @ObservedObject private var settings = Settings.shared
     
-    private var utilities = Utilities()
+    private let utilities = Utilities.shared
     
     @State private var activeChat: Chat? = nil
     @State private var streamingChunks: [String] = []
@@ -103,8 +103,10 @@ struct ContentView: View {
                      modelContext.delete(chat)
                  },
                  getNewTitle: { chat in
+                     let engine = settings.selectedEngine
+                     let ollamaModel = settings.selectedModel
                      Task {
-                         let newTitle = await llm.generateTitle(chat.messages)
+                         let newTitle = await llm.generateTitle(chat.messages, engine: engine, ollamaModel: ollamaModel)
                          chat.title = newTitle
                          chat.titleHasBeenGenerated = true
                      }
@@ -282,8 +284,15 @@ struct ContentView: View {
         }
         
         do {
+            let engine = settings.selectedEngine
+            let ollamaModel = settings.selectedModel
+            let rapidMLXModel = settings.rapidMLXSelectedModel
+
             let stream = llm.generateStream(
                 activeChat?.messages ?? [],
+                engine: engine,
+                ollamaModel: ollamaModel,
+                rapidMLXModel: rapidMLXModel,
                 fileContext: fileContext,
                 toolRegistry: toolRegistry
             )

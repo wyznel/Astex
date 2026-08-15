@@ -10,12 +10,22 @@ import RapidMLX
 
 class Utilities {
     
-    let client = Ollama.Client(host: URL(string: Settings.shared.ollamaURL)!, userAgent: "Astex/1.0")
-    let rapidmlx_client = RapidMLXClient(baseURL: URL(string: Settings.shared.rapidmlxURL)!)
+    static let shared = Utilities()
+    
+    // URLs are read directly from UserDefaults (thread-safe) rather than through
+    // the @MainActor `Settings` singleton, since `Utilities.shared` may be first
+    // touched from a non-main context.
+    let client = Ollama.Client(
+        host: URL(string: UserDefaults.standard.string(forKey: "OllamaURL") ?? "http://localhost:11434")!,
+        userAgent: "Astex/1.0"
+    )
+    let rapidmlx_client = RapidMLXClient(
+        baseURL: URL(string: UserDefaults.standard.string(forKey: "RapidMLXURL") ?? "http://localhost:8000")!
+    )
     var AvailableModels: [String : Ollama.Client.ListModelsResponse.Model] = [:]
     
     /// Load necessary values.
-    init() {
+    private init() {
         Task {
             let resp = await getAvailableModels_OLLAMA()
             for model in resp {
@@ -84,7 +94,7 @@ class Utilities {
             print(error)
         }
         
-        return [""]
+        return []
     }
     
     func tryUnloadAllModels() async -> Bool {

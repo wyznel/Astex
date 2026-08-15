@@ -20,7 +20,7 @@ final class ModelRowData {
     private(set) var parameterSize: String = "--"
     private(set) var isLoading: Bool = true
 
-    private static let utilities = Utilities()
+    private static let utilities = Utilities.shared
 
     init(modelName: String) {
         self.modelName = modelName
