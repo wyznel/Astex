@@ -52,3 +52,4 @@ fastlane/test_output
 .idea/
 *.swp
 *.swo
+CODE_REVIEW.md
