@@ -15,7 +15,13 @@ struct InstallEngineView: View {
     @ObservedObject var settings = Settings.shared
     
     @State private var isContinueButtonHovered: Bool = false
-    @State private var isContinueButtonDisabled: Bool = !isOllamaInstalled() && !isRapidMLXInstalled()
+    
+    @State private var ollamaIsInstalled: Bool = isOllamaInstalled()
+    @State private var rapidMLXIsInstalled: Bool = isRapidMLXInstalled()
+    
+    private var isContinueButtonDisabled: Bool {
+        !ollamaIsInstalled && !rapidMLXIsInstalled
+    }
     
     var body: some View {
         VStack(spacing: 20) {
@@ -25,22 +31,21 @@ struct InstallEngineView: View {
                 .fontWeight(.bold)
             
             HStack(spacing: 30) {
-                OllamaCard(isContinueButtonDisabled: $isContinueButtonDisabled)
-                RapidMLXCard(isContinueButtonDisabled: $isContinueButtonDisabled)
+                OllamaCard(isAlreadyInstalled: ollamaIsInstalled)
+                RapidMLXCard(isAlreadyInstalled: rapidMLXIsInstalled)
             }
             Text("Install either Ollama or RapidMLX to get started.")
                 .font(.alanSans(15))
                 .fontWeight(.regular)
             
             Button {
-                /// check if either ollama or rapidmlx has been installed
+                /// Re-check in case an engine was installed since the view appeared.
+                refreshInstallState()
                 
-                settings.isOllamaInstalled = isOllamaInstalled()
-                settings.isRapidMLXInstalled = isRapidMLXInstalled()
+                settings.isOllamaInstalled = ollamaIsInstalled
+                settings.isRapidMLXInstalled = rapidMLXIsInstalled
                 
-                let isAnEngineInstalled = settings.isOllamaInstalled || settings.isRapidMLXInstalled
-                
-                if isAnEngineInstalled {
+                if ollamaIsInstalled || rapidMLXIsInstalled {
                     withAni {
                         PageIndex = 3
                     }
@@ -73,6 +78,19 @@ struct InstallEngineView: View {
             .clipShape(Capsule())
             .animation(.spring(duration: 0.25), value: isContinueButtonHovered)
         }
+        .onAppear {
+            refreshInstallState()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            refreshInstallState()
+        }
+    }
+    
+    /// Re-checks the filesystem so the UI reflects engines installed while this
+    /// view was off-screen (e.g. the user downloaded one in the background).
+    private func refreshInstallState() {
+        ollamaIsInstalled = isOllamaInstalled()
+        rapidMLXIsInstalled = isRapidMLXInstalled()
     }
     
     // MARK: - Show Ollama installation card.
@@ -82,9 +100,8 @@ struct InstallEngineView: View {
         
         @State private var isCardHovered: Bool = false
         
-        @Binding var isContinueButtonDisabled: Bool
+        let isAlreadyInstalled: Bool
         
-        @State private var isAlreadyInstalled: Bool = isOllamaInstalled()
         @State private var isDownloadButtonHovered: Bool = false
         var body: some View {
             VStack {
@@ -153,9 +170,6 @@ struct InstallEngineView: View {
                 TapGesture()
                     .onEnded{_ in
                         openURL(URL(string: "https://ollama.com/download")!)
-                        withAni {
-                            isContinueButtonDisabled = false
-                        }
                     }
             )
         }
@@ -166,9 +180,9 @@ struct InstallEngineView: View {
         @Environment(\.openURL) private var openURL
         
         @State private var isCardHovered: Bool = false
-        @Binding var isContinueButtonDisabled: Bool
         
-        @State private var isAlreadyInstalled: Bool = isRapidMLXInstalled()
+        let isAlreadyInstalled: Bool
+        
         @State private var isDownloadButtonHovered: Bool = false
         var body: some View {
             VStack {
@@ -237,9 +251,7 @@ struct InstallEngineView: View {
             .highPriorityGesture(
                 TapGesture()
                     .onEnded{_ in
-                        withAni {
-                            isContinueButtonDisabled = false
-                        }
+                        openURL(URL(string: "https://rapidmlx.com/download")!)
                     }
             )
 

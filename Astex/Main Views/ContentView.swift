@@ -474,7 +474,7 @@ struct ContentView: View {
                     Button {
                         showFileImporter = true
                     } label: {
-                        Image(systemName: "plus")
+                        Image(systemName: "link")
                             .frame(width: 8, height: 12)
                     }
                     .buttonStyle(.glass)
