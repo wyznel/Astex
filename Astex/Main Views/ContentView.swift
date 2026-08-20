@@ -542,13 +542,6 @@ struct ContentView: View {
             .frame(maxWidth: prompt.isEmpty ? 400 : 750)
             .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 8))
         }
-        .borderBeam(
-            border: .white,
-            beam: [.orange],
-            beamBlur: 5,
-            cornerRadius: 8,
-            isEnabled: chatWindowEmpty && prompt.isEmpty
-        )
         .offset(y: chatWindowEmpty ? 0 : -20)
         .fileImporter(
             isPresented: $showFileImporter,
