@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var selectedSettingsTab: Int = 1
     
     @ObservedObject private var settings = Settings.shared
+    @ObservedObject private var permissionStore = PermissionStore.shared
     
     private let utilities = Utilities.shared
     
@@ -163,30 +164,14 @@ struct ContentView: View {
                             }
                         }
                         //Model is warming up / beginning its response. Show loading.
-                        if isModelLoading && streamingChunks.isEmpty && thinkingStreamingChunks.isEmpty {
+                        if isModelLoading && streamingChunks.isEmpty && thinkingStreamingChunks.isEmpty && permissionStore.pendingRequest == nil {
                             LoadingMessageBubble()
                         }
                         
                         // For streaming in-process chunks, they're grouped so all chunks share the width of the widest one rather than sizing independently.
                         if !thinkingStreamingChunks.isEmpty {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    ForEach(thinkingStreamingChunks.indices, id: \.self){ i in
-                                        Text(thinkingStreamingChunks[i])
-                                            .opacity(0.5)
-                                            .textSelection(.enabled)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, i == 0 ? 10 : 4)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .transition(.opacity.combined(with: .scale))
-                                    }
-                                }
-                                .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 6))
-                                .frame(maxWidth: 550, alignment: .leading)
-                                Spacer()
-                            }
+                            ThinkingView(message: thinkingStreamingChunks.joined(separator: ""))
                         }
-                        
                         if !streamingChunks.isEmpty {
                             HStack {
                                 VStack(alignment: .leading, spacing: 6) {
@@ -203,6 +188,11 @@ struct ContentView: View {
                                 .frame(maxWidth: 550, alignment: .leading)
                                 Spacer()
                             }
+                        }
+                        
+                        //Model is requesting to use a tool.
+                        if let request = permissionStore.pendingRequest {
+                            permissionRequestView(request)
                         }
                     }
                     .frame(maxWidth: 810, maxHeight: .infinity)
@@ -244,6 +234,7 @@ struct ContentView: View {
         }
         
         let chatAtStart = activeChat
+        permissionStore.currentSessionID = chatAtStart.map { ObjectIdentifier($0)}
         isAResponseGenerating = true
         
         defer {
@@ -617,4 +608,29 @@ struct ContentView: View {
             Spacer()
         }
     }
+    @ViewBuilder
+    func permissionRequestView(_ request: PermissionStore.PermissionRequest) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                  Text("\(request.modelName) is requesting to use \(request.toolName) tool.")
+                  Text(String(request.summary.prefix(200)) + (request.summary.count > 200 ? "…" : ""))
+                      .font(.caption)
+                      .foregroundStyle(.secondary)
+                      .lineLimit(2)
+                  HStack(spacing: 8) {
+                      Button("Always allow") { permissionStore.resolve(.alwaysAllow) }
+                      Button("Allow this chat") { permissionStore.resolve(.allowForChat) }
+                      Button("Allow once") { permissionStore.resolve(.allowOnce) }
+                      Button("Deny") { permissionStore.resolve(.denyOnce) }
+                      Button("Always deny") { permissionStore.resolve(.alwaysDeny) }
+                  }
+              }
+              .padding(10)
+              .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 6))
+              .frame(maxWidth: 550, alignment: .leading)
+              Spacer()
+
+        }
+    }
+    
 }

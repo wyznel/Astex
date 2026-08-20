@@ -33,6 +33,6 @@ enum CurrentTime {
             return CurrentTimeOutput(time: formatter.string(from: now))
         }
         
-        return AnyTool(tool: tool, name: "get_current_time")
+        return AnyTool(tool: tool, name: "get_current_time", capability: .getTime)
     }
 }

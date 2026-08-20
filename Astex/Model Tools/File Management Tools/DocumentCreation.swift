@@ -144,6 +144,6 @@ enum DocumentCreation {
                 )
             }
         }
-        return AnyTool(tool: tool, name: "create_document")
+        return AnyTool(tool: tool, name: "create_document", capability: .createFiles)
     }
 }

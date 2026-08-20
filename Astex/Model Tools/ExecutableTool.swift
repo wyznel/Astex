@@ -19,6 +19,9 @@ protocol ExecutableTool: Sendable {
     /// The underlying ToolProtocol for passing to chatStream().
     var toolProtocol: any ToolProtocol { get }
 
+    /// Tool capabilities.
+    var capability: ToolCapability? { get }
+    
     /// Execute the tool with dynamic arguments from the model.
     /// Returns a JSON string representing the output.
     func execute(arguments: [String: Value]) async throws -> String
@@ -45,14 +48,16 @@ protocol ExecutableTool: Sendable {
 struct AnyTool<Input: Codable & Sendable, Output: Codable & Sendable>: ExecutableTool {
     let name: String
     let toolProtocol: any ToolProtocol
+    let capability: ToolCapability?
     private let tool: Tool<Input, Output>
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
-    init(tool: Tool<Input, Output>, name: String) {
+    init(tool: Tool<Input, Output>, name: String, capability: ToolCapability? = nil) {
         self.name = name
         self.tool = tool
         self.toolProtocol = tool
+        self.capability = capability
     }
 
     func execute(arguments: [String: Value]) async throws -> String {
