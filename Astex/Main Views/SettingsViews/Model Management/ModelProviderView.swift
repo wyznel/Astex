@@ -57,6 +57,5 @@ struct ModelProvider: View {
             .glassEffect(settings.glassEffect.tint(Color.sepiaBackground.opacity(0.5)), in: .rect(cornerRadius: 10))
             .frame(maxWidth: 600)
         }
-
     }
 }

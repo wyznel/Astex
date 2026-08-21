@@ -128,6 +128,7 @@ struct ContentView: View {
             } else {
                 SettingsDetailView(selectedTab: selectedSettingsTab)
             }
+            
         }
         .navigationSplitViewStyle(.balanced)
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { newValue in
@@ -135,6 +136,19 @@ struct ContentView: View {
             
             Task {
                 await llm.stopAllModels()
+            }
+        }
+        .background {
+            if settings.isBackgroundImageEnabled {
+                Image("bg")
+                    .resizable()
+                    .ignoresSafeArea()
+                    .scaledToFill()
+                    .blur(radius: 30, opaque: true)
+                    .opacity(0.6)
+            } else{
+                Color.sepiaBackground
+                    .ignoresSafeArea()
             }
         }
     }
@@ -204,7 +218,8 @@ struct ContentView: View {
             if chatWindowEmpty { Spacer() }
             VStack(alignment: .leading, spacing: 10) {
                 Text("Astex")
-                    .font(.system(size: 32, weight: .bold, design: .monospaced))
+                    .font(.alanSans(32))
+                    .fontWeight(.bold)
                     .opacity(chatWindowEmpty ? 1 : 0)
                     .foregroundStyle(Color.sepiaText)
                     .animation(.spring(duration: settings.animationDelay * 2), value: prompt.isEmpty)
@@ -219,7 +234,7 @@ struct ContentView: View {
 
             if chatWindowEmpty { Spacer() }
         }
-        .background(Color.sepiaBackground)
+//        .background(Color.sepiaBackground)
     }
     
 // MARK: - Prompt Sending

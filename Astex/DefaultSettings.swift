@@ -31,5 +31,7 @@ class Settings: ObservableObject {
         }
     }
     
+    @AppStorage("backgroundToggle") var isBackgroundImageEnabled: Bool = false
+    
     private init() {}
 }
