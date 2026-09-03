@@ -93,7 +93,7 @@ struct UnloadThisModel: View {
                 .contentShape(Rectangle())
         }
         .opacity((isLoaded || selectedModel == modelName) ? 1 : 0)
-        .disabled(selectedModel == modelName && !isLoaded)
+        .disabled(!isLoaded)
         .contentShape(Rectangle())
         .task {
             if await Utilities.shared.areAnyModelsLoaded() {

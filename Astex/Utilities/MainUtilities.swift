@@ -12,6 +12,8 @@ class Utilities {
     
     static let shared = Utilities()
     
+    private let cache = DataCache.shared
+    
     // URLs are read directly from UserDefaults (thread-safe) rather than through
     // the @MainActor `Settings` singleton, since `Utilities.shared` may be first
     // touched from a non-main context.
@@ -50,14 +52,13 @@ class Utilities {
         return res.map(\.name) as [String]
     }
 
-    func getRapidMLXModels_NAME_ONLY() async -> [String] {
-        do {
-            let models = try await rapidmlx_client.getModels()
-            return models.map(\.alias)
-        }catch {
-            print(error)
+    func getRapidMLXModels(overrideCache: Bool = false) async -> [RapidMLXClient.RapidModel] {
+        
+        if overrideCache, let models = try? await rapidmlx_client.getModels() {
+            cache.set(models, forKey: "rapid-mlx-models")
         }
-        return []
+        
+        return cache.get(forKey: "rapid-mlx-models") as? [RapidMLXClient.RapidModel] ?? []
     }
     
     func getModelInfo(model: String) async -> [String: Any] {

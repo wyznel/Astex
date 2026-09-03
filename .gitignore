@@ -37,6 +37,7 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 
 # Environment / secrets
+.freebuff
 *.env
 .env
 *.pem

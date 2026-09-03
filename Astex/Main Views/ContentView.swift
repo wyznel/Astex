@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import Textual
 import UniformTypeIdentifiers
+import RapidMLX
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -135,6 +136,7 @@ struct ContentView: View {
             guard let window = newValue.object as? NSWindow, window.isMainWindow || window.isKeyWindow else { return }
             
             Task {
+                print("what")
                 await llm.stopAllModels()
             }
         }
@@ -521,7 +523,10 @@ struct ContentView: View {
                     .onAppear {
                         Task {
                             ollamaAvailableModels = await utilities.getAvailableModelsNAME_ONLY_OLLAMA()
-                            rapidMLXAvailableModels = await utilities.getRapidMLXModels_NAME_ONLY()
+                            
+                            let rapidModels = await utilities.getRapidMLXModels(overrideCache: true)
+                            
+                            rapidMLXAvailableModels = rapidModels.map(\.hfRepo) as [String]
                         }
                     }
                     .offset(y: -2)

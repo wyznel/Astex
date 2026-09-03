@@ -21,6 +21,8 @@ struct ModelManagementView: View {
     @State private var showTextInput: Bool = false
     @State private var showRapidMLXTextInput: Bool = false
 
+    private let cache = DataCache.shared
+    
     // MARK: Body
 
     var body: some View {
@@ -67,12 +69,7 @@ struct ModelManagementView: View {
         models = await Utilities.shared.getAvailableModelsNAME_ONLY_OLLAMA()
     }
 
-    func refreshRapidMLXModels() async {
-        do {
-            rapidModels = try await Utilities.shared.rapidmlx_client.getModels()
-        } catch {
-            print("Failed to fetch RapidMLX models: \(error)")
-            rapidModels = []
-        }
+    func refreshRapidMLXModels(overrideCache: Bool = false) async {
+        rapidModels = await Utilities.shared.getRapidMLXModels(overrideCache: overrideCache)
     }
 }

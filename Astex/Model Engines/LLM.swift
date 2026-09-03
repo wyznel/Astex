@@ -59,6 +59,5 @@ class LLM {
         }
         
         let _ = await utilities.tryUnloadAllModels()
-        print("all models stopped.")
     }
 }
