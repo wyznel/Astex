@@ -416,6 +416,13 @@ struct ContentView: View {
     }
     
     @State private var messageHistoryIndex: Int = -1
+    @State private var isModelSelectorPickerOpened: Bool = false
+    
+    private var selectedModel: String {
+        settings.selectedEngine == .ollama
+            ? settings.selectedModel
+            : settings.rapidMLXSelectedModel
+    }
     
     @ViewBuilder
     func userInputArea() -> some View {
@@ -509,16 +516,34 @@ struct ContentView: View {
                     .tint(.sepiaAccent)
                     .offset(y: -2)
                     
-                    Picker("Models", selection: settings.selectedEngine == .ollama ? $settings.selectedModel : $settings.rapidMLXSelectedModel) {
-                        ForEach(settings.selectedEngine == .ollama ? ollamaAvailableModels : rapidMLXAvailableModels, id: \.self)  { model in
-                            Text(model)
-                                .tag(model)
+                    Menu {
+                        ForEach(settings.selectedEngine == .ollama ? ollamaAvailableModels : rapidMLXAvailableModels, id: \.self) { model in
+                            Button {
+                                if settings.selectedEngine == .ollama {
+                                    settings.selectedModel = model
+                                }else {
+                                    settings.rapidMLXSelectedModel = model
+                                }
+                            } label: {
+                                if model == selectedModel {
+                                    Label(model, systemImage: "checkmark")
+                                } else {
+                                    Text(model)
+                                }
+                                
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(shortenedModelName(selectedModel))
+                                .lineLimit(1)
+
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption)
                         }
                     }
                     .scaleEffect(0.85)
                     .padding(.horizontal, -12)
-                    .pickerStyle(.menu)
-                    .labelsHidden()
                     .tint(.sepiaAccent)
                     .onAppear {
                         Task {

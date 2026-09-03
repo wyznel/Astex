@@ -165,3 +165,9 @@ func isOllamaInstalled() -> Bool {
 func isRapidMLXInstalled() -> Bool {
     return findExecutablePath(named: "rapid-mlx") != nil
 }
+
+
+func shortenedModelName(_ model: String, limit: Int = 10) -> String {
+    guard model.count > limit else { return model }
+    return String(model.prefix(limit)) + "..."
+}
