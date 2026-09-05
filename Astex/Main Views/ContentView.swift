@@ -133,9 +133,7 @@ struct ContentView: View {
             
         }
         .navigationSplitViewStyle(.balanced)
-        .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { newValue in
-            guard let window = newValue.object as? NSWindow, window.isMainWindow || window.isKeyWindow else { return }
-            
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
             Task {
                 await llm.stopAllModels()
             }
@@ -544,6 +542,7 @@ struct ContentView: View {
                                     }else {
                                         settings.rapidMLXSelectedModel = model
                                     }
+                                    print(model)
                                 } label: {
                                     if model == selectedModel {
                                         Label(model, systemImage: "checkmark")
@@ -571,7 +570,7 @@ struct ContentView: View {
                                 
                                 let rapidModels = await utilities.getRapidMLXModels(overrideCache: true)
                                 
-                                rapidMLXAvailableModels = rapidModels.map(\.hfRepo) as [String]
+                                rapidMLXAvailableModels = rapidModels.map(\.alias) as [String]
                             }
                         }
                         .offset(y: -2)

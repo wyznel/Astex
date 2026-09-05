@@ -175,7 +175,7 @@ private struct OllamaDownloadModelView: View {
                     Task {
                         do {
                             modelName = input_field
-                            for try await prog in utilities.client.pullModelStream("\(modelName)") {
+                            for try await prog in utilities.ollama_client.pullModelStream("\(modelName)") {
                                 if temp_count == 2 && model_hash.isEmpty {
                                     model_hash = prog.status
                                     progressText = modelName

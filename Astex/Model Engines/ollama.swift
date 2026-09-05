@@ -3,7 +3,7 @@ import Foundation
 
 
 class OllamaEngine {
-    let client = Utilities.shared.client
+    let client = Utilities.shared.ollama_client
     
     func getAvailableModels() async -> [Client.ListModelsResponse.Model] {
         do{

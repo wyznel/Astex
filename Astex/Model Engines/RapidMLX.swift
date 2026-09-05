@@ -25,6 +25,7 @@ class RapidMLXEngine {
                 }
                 do {
                     continuation.yield(.loading(true))
+                    
                     try await client.serve(model: model)
                     
                     let sorted = previousMessages.sorted {

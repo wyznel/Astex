@@ -8,6 +8,8 @@ import Ollama
 import SwiftUI
 import RapidMLX
 
+extension RapidMLXClient.HealthResponse: @retroactive @unchecked Sendable {}
+
 class Utilities {
     
     static let shared = Utilities()
@@ -17,7 +19,7 @@ class Utilities {
     // URLs are read directly from UserDefaults (thread-safe) rather than through
     // the @MainActor `Settings` singleton, since `Utilities.shared` may be first
     // touched from a non-main context.
-    let client = Ollama.Client(
+    let ollama_client = Ollama.Client(
         host: URL(string: UserDefaults.standard.string(forKey: "OllamaURL") ?? "http://localhost:11434")!,
         userAgent: "Astex/1.0"
     )
@@ -38,7 +40,7 @@ class Utilities {
 
     func getAvailableModels_OLLAMA() async -> [Ollama.Client.ListModelsResponse.Model] {
         do {
-            let response = try await client.listModels()
+            let response = try await ollama_client.listModels()
             return response.models
         }catch{
             print("Error when retrieving installed models: \(error)")
@@ -61,7 +63,7 @@ class Utilities {
         
         return cache.get(forKey: "rapid-mlx-models") as? [RapidMLXClient.RapidModel] ?? []
     }
-    
+
     func getModelInfo(model: String) async -> [String: Any] {
         let models = await getAvailableModels_OLLAMA()
         let matchingModel = models.first(where: { $0.name == model })
@@ -82,16 +84,18 @@ class Utilities {
 
 //  MARK: - Model memory management
     
+    ///Helper function.
     func areAnyModelsLoaded() async -> Bool {
-        if await getRunningModels().isEmpty {
-            return false
-        }
-        return true
+        let hasRunningOllamaModel = await !getRunningOllamaModels().isEmpty
+        let hasRunningRapidMLXModel = await getRunningRapidMLXModel() != nil
+
+        return hasRunningOllamaModel || hasRunningRapidMLXModel
     }
     
-    func getRunningModels() async -> [String] {
+    /// Obtains all currently running models for ollama.
+    func getRunningOllamaModels() async -> [String] {
         do {
-            return (try await client.listRunningModels().models).map(\.name)
+            return (try await ollama_client.listRunningModels().models).map(\.name)
         }catch{
             print(error)
         }
@@ -99,14 +103,27 @@ class Utilities {
         return []
     }
     
+    /// Gets the identifier of the currently running RapidMLX model.
+    func getRunningRapidMLXModel() async -> String? {
+        do {
+            let health = try await rapidmlx_client.getHealth()
+            let modelName = health.model_name.trimmingCharacters(in: .whitespacesAndNewlines)
+            return health.model_loaded && !modelName.isEmpty ? modelName : nil
+        }catch {
+            print(error)
+        }
+
+        return nil
+    }
+
     func tryUnloadAllModels() async -> Bool {
-        let loadedModels: [String] = await getRunningModels()
+        let loadedModels: [String] = await getRunningOllamaModels()
         print("loaded models: ", loadedModels)
         var unloadedModelCount: Int = 0
         let totalModels = loadedModels.count
             
         loadedModels.forEach { model in
-            if client.unloadModel(model: model) {
+            if ollama_client.unloadModel(model: model) {
                 unloadedModelCount+=1
             }
         }
