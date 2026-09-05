@@ -23,7 +23,7 @@ struct RapidMLXModelInputCard: View {
     @State private var downloadInProgress: Bool = false
     @State private var isSuccess: Bool = false
     @State private var appeared: Bool = false
-
+    
     var body: some View {
         VStack(spacing: 16) {
             // Header area with icon and close button
@@ -186,9 +186,14 @@ struct RapidMLXModelRow: View {
                 modelName: displayName,
                 isDisabled: selectedModel == displayName,
                 onDeleteAsync: {
-                    let aliasParam = model.alias.isEmpty ? nil : model.alias
-                    let repoParam = model.alias.isEmpty ? model.hfRepo : nil
-                    return try await Utilities.shared.rapidmlx_client.delete(alias: aliasParam, hfRepo: repoParam)
+                    // A model with no real alias (empty or "(unmapped)") is
+                    // deleted by its HF repo instead.
+                    let isMapped = !model.alias.isEmpty && model.alias != "(unmapped)"
+                    let aliasParam = isMapped ? model.alias : nil
+                    let repoParam = isMapped ? nil : model.hfRepo
+                    let success = try await Utilities.shared.rapidmlx_client.delete(alias: aliasParam, hfRepo: repoParam)
+                    print("Success: ", success)
+                    return success
                 },
                 onDelete: {
                     onDeleted()
@@ -203,7 +208,6 @@ struct RapidMLXModelRow: View {
         Divider()
     }
 }
-
 
 
 struct RapidMLXModelTable: View {
@@ -258,7 +262,7 @@ struct RapidMLXModelTable: View {
                     Divider()
 
                     // Data rows
-                    ForEach(rapidModels, id: \.alias) { model in
+                    ForEach(rapidModels, id: \.id) { model in
                         RapidMLXModelRow(
                             model: model,
                             selectedModel: $selectedModel,

@@ -56,6 +56,7 @@ class Utilities {
         
         if overrideCache, let models = try? await rapidmlx_client.getModels() {
             cache.set(models, forKey: "rapid-mlx-models")
+            return models
         }
         
         return cache.get(forKey: "rapid-mlx-models") as? [RapidMLXClient.RapidModel] ?? []

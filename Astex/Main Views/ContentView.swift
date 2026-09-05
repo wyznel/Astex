@@ -38,6 +38,7 @@ struct ContentView: View {
     @State private var rapidMLXAvailableModels: [String] = []
     
     @State private var showFileImporter: Bool = false
+    @State private var isDropTargeted: Bool = false
     
     @State private var uploadedFiles: [UploadedFile] = []
     
@@ -136,7 +137,6 @@ struct ContentView: View {
             guard let window = newValue.object as? NSWindow, window.isMainWindow || window.isKeyWindow else { return }
             
             Task {
-                print("what")
                 await llm.stopAllModels()
             }
         }
@@ -236,7 +236,15 @@ struct ContentView: View {
 
             if chatWindowEmpty { Spacer() }
         }
-//        .background(Color.sepiaBackground)
+        .dropDestination(for: URL.self) { urls, _ in
+            acceptDroppedFiles(urls)
+            return true
+        } isTargeted: { isTargeted in
+            withAni {
+                isDropTargeted = isTargeted
+            }
+        }
+        .animation(.spring(duration: settings.animationDelay * 2), value: isDropTargeted)
     }
     
 // MARK: - Prompt Sending
@@ -415,6 +423,17 @@ struct ContentView: View {
         
     }
     
+// MARK: - Handling drag and drop files.
+    private func acceptDroppedFiles(_ urls: [URL]) {
+        for url in urls {
+            guard let contentType = try? url.resourceValues(forKeys: [.contentTypeKey]).contentType, AllowedFileTypes().types.contains(contentType) else { continue }
+            
+            guard !uploadedFiles.contains(where: { $0.url == url}) else { continue }
+            let _ = url.startAccessingSecurityScopedResource()
+            uploadedFiles.append(UploadedFile(url: url))
+        }
+    }
+    
     @State private var messageHistoryIndex: Int = -1
     @State private var isModelSelectorPickerOpened: Bool = false
     
@@ -428,158 +447,164 @@ struct ContentView: View {
     func userInputArea() -> some View {
         HStack(alignment: .bottom, spacing: 12) {
             VStack(alignment: .leading, spacing: 12) {
-                GlassEffectContainer {
-                    HStack(spacing: 12){
-                        ForEach(uploadedFiles, id: \.id) { file in
-                            UploadedFileView(
-                                file: file,
-                                uploadedFiles: $uploadedFiles
-                            )
-                        }
-                    }
-                }
-                
-                TextEditor(text: $prompt)
-                    .font(.body)
-                    .scrollContentBackground(.hidden)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 15)
-                    .frame(minHeight: 30, maxHeight: 200)
-                    .frame(width: prompt.isEmpty ? 400 : 750)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .scrollDisabled(prompt.isEmpty)
-                    .overlay(alignment: .topLeading) {
-                        if prompt.isEmpty {
-                            Text("Enter prompt")
-                                .font(.body)
-                                .foregroundColor(Color(nsColor: .placeholderTextColor))
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 14)
-                                .allowsHitTesting(false)
-                        }
-                    }
-                    .onKeyPress(keys: [.return], phases: .down) { keyPress in
-                        if keyPress.modifiers.contains(.shift) {
-                            return .ignored
-                        }
-                        guard !prompt.isEmpty && !isAResponseGenerating else { return .handled }
-                        generationTask = Task { @MainActor in
-                            await handlePromptSending()
-                        }
-                        return .handled
-                    }
-                    .onKeyPress(keys: [.upArrow], phases: .down) { keyPress in
-                        let sorted = (activeChat?.messages ?? [])
-                            .filter { $0.isUser }
-                            .sorted { $0.createdAt < $1.createdAt }
-                        
-                        guard !sorted.isEmpty else { return .ignored }
-                        
-                        let nextIndex = messageHistoryIndex + 1
-                        
-                        guard nextIndex < sorted.count else { return .handled }
-                        
-                        messageHistoryIndex = nextIndex
-                        prompt = sorted[sorted.count - 1 - messageHistoryIndex].response
-                        
-                        return .handled
-                    }
-                
-                HStack(alignment: .bottom) {
-                    Button {
-                        showFileImporter = true
-                    } label: {
-                        Image(systemName: "link")
-                            .frame(width: 8, height: 12)
-                    }
-                    .buttonStyle(.glass)
-                    .offset(x: 4, y: -4)
-                    .onHover { hover in
-                        withAni {
-                            isUploadFileButtonHovered = hover
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    
-                    Picker("Engine", selection: $settings.selectedEngine) {
-                        ForEach(ModelEngines.allCases, id: \.self) { provider in
-                            Text(provider.rawValue)
-                                .tag(provider)
-                        }
-                    }
-                    .scaleEffect(0.85)
-                    .padding(.horizontal, -12)
-                    .pickerStyle(.menu)
-                    .labelsHidden()
-                    .tint(.sepiaAccent)
-                    .offset(y: -2)
-                    
-                    Menu {
-                        ForEach(settings.selectedEngine == .ollama ? ollamaAvailableModels : rapidMLXAvailableModels, id: \.self) { model in
-                            Button {
-                                if settings.selectedEngine == .ollama {
-                                    settings.selectedModel = model
-                                }else {
-                                    settings.rapidMLXSelectedModel = model
-                                }
-                            } label: {
-                                if model == selectedModel {
-                                    Label(model, systemImage: "checkmark")
-                                } else {
-                                    Text(model)
-                                }
-                                
+                if !isDropTargeted {
+                    GlassEffectContainer {
+                        HStack(spacing: 12){
+                            ForEach(uploadedFiles, id: \.id) { file in
+                                UploadedFileView(
+                                    file: file,
+                                    uploadedFiles: $uploadedFiles
+                                )
                             }
                         }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(shortenedModelName(selectedModel))
-                                .lineLimit(1)
-
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(.caption)
-                        }
                     }
-                    .scaleEffect(0.85)
-                    .padding(.horizontal, -12)
-                    .tint(.sepiaAccent)
-                    .onAppear {
-                        Task {
-                            ollamaAvailableModels = await utilities.getAvailableModelsNAME_ONLY_OLLAMA()
-                            
-                            let rapidModels = await utilities.getRapidMLXModels(overrideCache: true)
-                            
-                            rapidMLXAvailableModels = rapidModels.map(\.hfRepo) as [String]
-                        }
-                    }
-                    .offset(y: -2)
                     
-                    Button {
-                        if isAResponseGenerating {
-                            generationTask?.cancel()
-                            isAResponseGenerating = false
-                            streamingChunks = []
-                        } else {
+                    TextEditor(text: $prompt)
+                        .font(.body)
+                        .scrollContentBackground(.hidden)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 15)
+                        .frame(minHeight: 30, maxHeight: 200)
+                        .frame(width: prompt.isEmpty ? 400 : 750)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .scrollDisabled(prompt.isEmpty)
+                        .overlay(alignment: .topLeading) {
+                            if prompt.isEmpty {
+                                Text("Enter prompt")
+                                    .font(.body)
+                                    .foregroundColor(Color(nsColor: .placeholderTextColor))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 14)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                        .onKeyPress(keys: [.return], phases: .down) { keyPress in
+                            if keyPress.modifiers.contains(.shift) {
+                                return .ignored
+                            }
+                            guard !prompt.isEmpty && !isAResponseGenerating else { return .handled }
                             generationTask = Task { @MainActor in
                                 await handlePromptSending()
                             }
+                            return .handled
                         }
-                    } label: {
-                        Image(systemName: isAResponseGenerating ? "stop.fill" : "arrow.up")
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .contentShape(Rectangle())
-                    }
-                    .disabled(prompt.isEmpty && !isAResponseGenerating)
-                    .buttonStyle(.glass)
-                    .offset(x: -4, y: -4)
-                    .frame(width: 24, height: 20)
-                    .onHover { hover in
-                        withAni {
-                            isSendButtonHovered = hover && !prompt.isEmpty
+                        .onKeyPress(keys: [.upArrow], phases: .down) { keyPress in
+                            let sorted = (activeChat?.messages ?? [])
+                                .filter { $0.isUser }
+                                .sorted { $0.createdAt < $1.createdAt }
+                            
+                            guard !sorted.isEmpty else { return .ignored }
+                            
+                            let nextIndex = messageHistoryIndex + 1
+                            
+                            guard nextIndex < sorted.count else { return .handled }
+                            
+                            messageHistoryIndex = nextIndex
+                            prompt = sorted[sorted.count - 1 - messageHistoryIndex].response
+                            
+                            return .handled
+                        }
+                    
+                    HStack(alignment: .bottom) {
+                        Button {
+                            showFileImporter = true
+                        } label: {
+                            Image(systemName: "link")
+                                .frame(width: 8, height: 12)
+                        }
+                        .buttonStyle(.glass)
+                        .offset(x: 4, y: -4)
+                        .onHover { hover in
+                            withAni {
+                                isUploadFileButtonHovered = hover
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        
+                        Picker("Engine", selection: $settings.selectedEngine) {
+                            ForEach(ModelEngines.allCases, id: \.self) { provider in
+                                Text(provider.rawValue)
+                                    .tag(provider)
+                            }
+                        }
+                        .scaleEffect(0.85)
+                        .padding(.horizontal, -12)
+                        .pickerStyle(.menu)
+                        .labelsHidden()
+                        .tint(.sepiaAccent)
+                        .offset(y: -2)
+                        
+                        Menu {
+                            ForEach(settings.selectedEngine == .ollama ? ollamaAvailableModels : rapidMLXAvailableModels, id: \.self) { model in
+                                Button {
+                                    if settings.selectedEngine == .ollama {
+                                        settings.selectedModel = model
+                                    }else {
+                                        settings.rapidMLXSelectedModel = model
+                                    }
+                                } label: {
+                                    if model == selectedModel {
+                                        Label(model, systemImage: "checkmark")
+                                    } else {
+                                        Text(model)
+                                    }
+                                    
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(shortenedModelName(selectedModel))
+                                    .lineLimit(1)
+
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .font(.caption)
+                            }
+                        }
+                        .scaleEffect(0.85)
+                        .padding(.horizontal, -12)
+                        .tint(.sepiaAccent)
+                        .onAppear {
+                            Task {
+                                ollamaAvailableModels = await utilities.getAvailableModelsNAME_ONLY_OLLAMA()
+                                
+                                let rapidModels = await utilities.getRapidMLXModels(overrideCache: true)
+                                
+                                rapidMLXAvailableModels = rapidModels.map(\.hfRepo) as [String]
+                            }
+                        }
+                        .offset(y: -2)
+                        
+                        Button {
+                            if isAResponseGenerating {
+                                generationTask?.cancel()
+                                isAResponseGenerating = false
+                                streamingChunks = []
+                            } else {
+                                generationTask = Task { @MainActor in
+                                    await handlePromptSending()
+                                }
+                            }
+                        } label: {
+                            Image(systemName: isAResponseGenerating ? "stop.fill" : "arrow.up")
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .contentShape(Rectangle())
+                        }
+                        .disabled(prompt.isEmpty && !isAResponseGenerating)
+                        .buttonStyle(.glass)
+                        .offset(x: -4, y: -4)
+                        .frame(width: 24, height: 20)
+                        .onHover { hover in
+                            withAni {
+                                isSendButtonHovered = hover && !prompt.isEmpty
+                            }
                         }
                     }
+                }
+                else {
+                    Label("Drag file here to upload", systemImage: "plus")
+                        .padding()
                 }
             }
             .padding(.leading, 5)
@@ -590,7 +615,7 @@ struct ContentView: View {
         .offset(y: chatWindowEmpty ? 0 : -20)
         .fileImporter(
             isPresented: $showFileImporter,
-            allowedContentTypes: [.text, .pdf],
+            allowedContentTypes: AllowedFileTypes().types,
             allowsMultipleSelection: true
         ) { result in
             switch result {

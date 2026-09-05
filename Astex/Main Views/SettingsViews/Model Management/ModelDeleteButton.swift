@@ -71,6 +71,7 @@ struct ModelDeleteButton: View {
             let success: Bool
             if let onDeleteAsync {
                 success = try await onDeleteAsync()
+                print(success)
             } else {
                 let modelID = Ollama.Model.ID(rawValue: modelName)
                 success = try await Utilities.shared.client.deleteModel(modelID!)

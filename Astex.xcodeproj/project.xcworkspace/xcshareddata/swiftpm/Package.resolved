@@ -1,5 +1,5 @@
 {
-  "originHash" : "3728b7c9717530ffe92dc6f030d00dc278ca14ef9277997bfa21dd3882d2a7d4",
+  "originHash" : "f9e2446a5900a8acaa64c493969ce3e35a15dea26c341d04707102210b05cb42",
   "pins" : [
     {
       "identity" : "ollama-swift",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/wyznel/rapid-mlx-swift",
       "state" : {
         "branch" : "main",
-        "revision" : "ba60b7e4e21ce46eb1f8fdd5fc25de9676e8e73d"
+        "revision" : "1afe6314e25f2da2c9ff1f888b8ed31ae5705bdc"
       }
     },
     {
