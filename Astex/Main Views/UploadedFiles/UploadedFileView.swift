@@ -10,6 +10,8 @@ struct UploadedFileView: View {
     let file: UploadedFile
     @Binding var uploadedFiles: [UploadedFile]
     
+    @ObservedObject var settings = Settings.shared
+    
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "text.document")
@@ -26,7 +28,7 @@ struct UploadedFileView: View {
             .contentShape(Rectangle())
         }
         .frame(maxWidth: 100, maxHeight: 30)
-        .glassEffect(Settings.shared.glassEffect, in: .rect(cornerRadius: 6))
+        .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 6))
         .offset(y: 4)
     }
 }

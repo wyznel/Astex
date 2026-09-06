@@ -8,6 +8,7 @@ import SwiftUI
 import Textual
 
 struct CollapsibleText: View {
+    @ObservedObject private var settings = Settings.shared
     let text: String
     let lineLimit: Int
     
@@ -32,7 +33,7 @@ struct CollapsibleText: View {
                         })
                         .hidden()
                 )
-                .animation(.spring(duration: Settings.shared.animationDelay), value: expanded)
+                .animation(.spring(duration: settings.animationDelay), value: expanded)
             
             if isHovered || expanded {
                 Button{
@@ -43,7 +44,7 @@ struct CollapsibleText: View {
             }
         }
         .contentShape(Rectangle())
-        .animation(.spring(duration: Settings.shared.animationDelay), value: isHovered)
+        .animation(.spring(duration: settings.animationDelay), value: isHovered)
         .onHover{ hovering in
             withAni {
                 isHovered = hovering

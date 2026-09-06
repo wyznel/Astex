@@ -32,6 +32,10 @@ class Settings: ObservableObject {
     }
     
     @AppStorage("backgroundToggle") var isBackgroundImageEnabled: Bool = false
-    
+    @AppStorage("ColourTheme") var colourTheme: ColourThemes = .forest {
+        didSet {
+            objectWillChange.send()
+        }
+    }
     private init() {}
 }

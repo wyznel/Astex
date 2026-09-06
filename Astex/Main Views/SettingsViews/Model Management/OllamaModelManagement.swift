@@ -203,7 +203,7 @@ private struct OllamaModelRow: View {
         }
         .padding(.vertical, 2)
         .background(
-            Color.sepiaAccent.opacity(selectedModel == modelName ? 0.1 : 0),
+            ThemesManager.shared.getAccentColour().opacity(selectedModel == modelName ? 0.1 : 0),
             in: RoundedRectangle(cornerRadius: 6)
         )
         .task(id: modelName) {
@@ -258,6 +258,8 @@ struct OllamaModelInputCard: View {
     @State private var progress = 0.0
     @State private var appeared = false
 
+    @ObservedObject var settings = Settings.shared
+    
     init(
         showsPullCard: Binding<Bool>,
         onDone: @escaping () async -> Void
@@ -280,7 +282,7 @@ struct OllamaModelInputCard: View {
                     .disableAutocorrection(true)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
-                    .glassEffect(Settings.shared.glassEffect, in: .capsule)
+                    .glassEffect(settings.glassEffect, in: .capsule)
                     .disabled(isPulling)
 
                 Button {
@@ -290,8 +292,8 @@ struct OllamaModelInputCard: View {
                         .font(.system(size: 20))
                         .foregroundStyle(
                             modelName.isEmpty
-                                ? Color.sepiaText.opacity(0.2)
-                                : Color.sepiaAccent
+                            ? ThemesManager.shared.getTextColour().opacity(0.2)
+                            : ThemesManager.shared.getAccentColour()
                         )
                 }
                 .buttonStyle(.plain)
@@ -363,17 +365,17 @@ private struct PullProgressView: View {
     var body: some View {
         VStack(spacing: 6) {
             ProgressView(value: progress, total: 100)
-                .tint(Color.sepiaAccent)
+                .tint(ThemesManager.shared.getAccentColour())
 
             HStack {
                 Text(status)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.sepiaText.opacity(0.7))
+                    .foregroundStyle(ThemesManager.shared.getTextColour().opacity(0.7))
                     .lineLimit(1)
                 Spacer()
                 Text("\(Int(progress))%")
                     .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(Color.sepiaAccent)
+                    .foregroundStyle(ThemesManager.shared.getAccentColour())
             }
         }
     }
@@ -383,19 +385,21 @@ struct PullCardHeader: View {
     let title: String
     let subtitle: String
     @Binding var showsPullCard: Bool
-
+    
+    @ObservedObject var settings = Settings.shared
+    
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(spacing: 8) {
                 Image(systemName: "arrow.down.circle.fill")
                     .font(.system(size: 36, weight: .medium))
-                    .foregroundStyle(Color.sepiaAccent)
+                    .foregroundStyle(ThemesManager.shared.getAccentColour())
                 Text(title)
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(Color.sepiaText)
+                    .foregroundStyle(ThemesManager.shared.getTextColour())
                 Text(subtitle)
                     .font(.system(size: 11))
-                    .foregroundStyle(Color.sepiaText.opacity(0.5))
+                    .foregroundStyle(ThemesManager.shared.getTextColour().opacity(0.5))
             }
             .frame(maxWidth: .infinity)
             .padding(.top, 4)
@@ -405,9 +409,9 @@ struct PullCardHeader: View {
             } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Color.sepiaText.opacity(0.4))
+                    .foregroundStyle(ThemesManager.shared.getTextColour().opacity(0.4))
                     .frame(width: 22, height: 22)
-                    .glassEffect(Settings.shared.glassEffect, in: .circle)
+                    .glassEffect(settings.glassEffect, in: .circle)
             }
             .buttonStyle(.plain)
         }
@@ -415,15 +419,18 @@ struct PullCardHeader: View {
 }
 
 extension View {
+    
     func pullCardStyle(appeared: Bool) -> some View {
-        padding(20)
-            .frame(width: 320)
-            .glassEffect(Settings.shared.glassEffect, in: .rect(cornerRadius: 18))
-            .shadow(color: .black.opacity(0.15), radius: 20, y: 8)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .scaleEffect(appeared ? 1 : 0.92)
-            .opacity(appeared ? 1 : 0)
-            .offset(y: -100)
+        @ObservedObject var settings = Settings.shared
+        
+        return padding(20)
+                .frame(width: 320)
+                .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 18))
+                .shadow(color: .black.opacity(0.15), radius: 20, y: 8)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .scaleEffect(appeared ? 1 : 0.92)
+                .opacity(appeared ? 1 : 0)
+                .offset(y: -100)
     }
 }
 

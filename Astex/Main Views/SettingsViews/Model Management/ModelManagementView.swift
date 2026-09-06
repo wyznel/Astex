@@ -14,7 +14,7 @@ struct ModelManagementView: View {
     @State private var rapidMLXModels: [RapidMLXClient.RapidModel] = []
     @State private var showsOllamaPullCard = false
     @State private var showsRapidMLXPullCard = false
-
+    
     var body: some View {
         ZStack {
             ScrollView {
@@ -88,7 +88,7 @@ private struct ModelProviderPicker: View {
                     isResetIconRotated = false
                 } label: {
                     Image(systemName: "arrow.trianglehead.counterclockwise")
-                        .foregroundStyle(Color.sepiaAccent)
+                        .foregroundStyle(ThemesManager.shared.getAccentColour())
                         .rotationEffect(.degrees(isResetIconRotated ? -360 : 0))
                 }
                 .buttonStyle(.plain)
@@ -110,7 +110,7 @@ private struct ModelProviderPicker: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .glassEffect(
-                settings.glassEffect.tint(Color.sepiaBackground.opacity(0.5)),
+                settings.glassEffect.tint(ThemesManager.shared.getBackgroundColour().opacity(0.5)),
                 in: .rect(cornerRadius: 10)
             )
             .frame(maxWidth: 600)

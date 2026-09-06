@@ -67,9 +67,9 @@ struct InstallEngineView: View {
             )
             .glassEffect(
                 isContinueButtonHovered && !isContinueButtonDisabled
-                ? Settings.shared.glassEffect
+                ? settings.glassEffect
                     .tint(Color.sepiaAccent.opacity(0.3))
-                : Settings.shared.glassEffect,
+                : settings.glassEffect,
                 in: Capsule()
             )
             .onHover{ hovered in
@@ -95,6 +95,7 @@ struct InstallEngineView: View {
     
     // MARK: - Show Ollama installation card.
     struct OllamaCard: View {
+        @ObservedObject private var settings = Settings.shared
         
         @Environment(\.openURL) private var openURL
         
@@ -160,7 +161,7 @@ struct InstallEngineView: View {
                 cornerRadius: 12,
                 isEnabled: isCardHovered || isAlreadyInstalled
             )
-            .glassEffect(Settings.shared.glassEffect, in: RoundedRectangle(cornerRadius: 12))
+            .glassEffect(settings.glassEffect, in: RoundedRectangle(cornerRadius: 12))
             .onHover { hovered in
                 isCardHovered = hovered
             }
@@ -177,6 +178,7 @@ struct InstallEngineView: View {
     
     // MARK: - Show RapidMLX installation card.
     struct RapidMLXCard: View {
+        @ObservedObject private var settings = Settings.shared
         @Environment(\.openURL) private var openURL
         
         @State private var isCardHovered: Bool = false
@@ -242,7 +244,7 @@ struct InstallEngineView: View {
                 cornerRadius: 12,
                 isEnabled: isCardHovered || isAlreadyInstalled
             )
-            .glassEffect(Settings.shared.glassEffect, in: RoundedRectangle(cornerRadius: 12))
+            .glassEffect(settings.glassEffect, in: RoundedRectangle(cornerRadius: 12))
             .onHover { hovered in
                 isCardHovered = hovered
             }

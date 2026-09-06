@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SettingsTabView: View {
     
-    private var settings = Settings.shared
+    @ObservedObject var settings = Settings.shared
     
     var body: some View {
         VStack {

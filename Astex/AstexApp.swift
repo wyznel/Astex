@@ -49,13 +49,13 @@ struct AstexApp: App {
                         .frame(minWidth: 1000, minHeight: 512)
                         .toolbar(removing: .title)
                         .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-                        .tint(.sepiaAccent)
+                        .tint(ThemesManager.shared.getAccentColour())
                 } else {
                     OnboardingView()
                         .frame(minWidth: 750, minHeight: 512)
                         .toolbar(removing: .title)
                         .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-                        .tint(.sepiaAccent)
+                        .tint(ThemesManager.shared.getAccentColour())
                         .windowResizeBehavior(.disabled)
                 }
             }

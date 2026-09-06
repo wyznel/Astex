@@ -64,6 +64,7 @@ struct SettingsSidebarTabButton: View {
     let icon: String
     let tabID: Int
     @Binding var selectedTab: Int
+    @ObservedObject private var settings = Settings.shared
 
     @State private var hovered: Bool = false
 
@@ -71,7 +72,7 @@ struct SettingsSidebarTabButton: View {
         Button {
             withAni {
                 if tabID == -1 {
-                    Settings.shared.settingsOpened = false
+                    settings.settingsOpened = false
                 }else {
                     selectedTab = tabID
                 }
@@ -88,12 +89,12 @@ struct SettingsSidebarTabButton: View {
         }
         .glassEffect(
             hovered || selectedTab == tabID
-                ? Settings.shared.glassEffect.tint(Color.sepiaAccent.opacity(0.3))
-                : Settings.shared.glassEffect.tint(Color.sepiaAccent.opacity(0.125)),
+            ? settings.glassEffect.tint(ThemesManager.shared.getAccentColour().opacity(0.3))
+            : settings.glassEffect.tint(ThemesManager.shared.getAccentColour().opacity(0.125)),
             in: RoundedRectangle(cornerRadius: 12)
         )
-        .animation(.spring(duration: Settings.shared.animationDelay), value: hovered)
-        .animation(.spring(duration: Settings.shared.animationDelay), value: selectedTab)
+        .animation(.spring(duration: settings.animationDelay), value: hovered)
+        .animation(.spring(duration: settings.animationDelay), value: selectedTab)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .buttonStyle(.plain)
         .onHover { isHovered in
@@ -104,6 +105,7 @@ struct SettingsSidebarTabButton: View {
 
 struct SettingsDetailView: View {
     let selectedTab: Int
+    @ObservedObject private var settings = Settings.shared
 
     var body: some View {
         VStack {
@@ -121,7 +123,9 @@ struct SettingsDetailView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.sepiaBackground)
+        .background(
+            ThemesManager.shared.getBackgroundColour()
+        )
     }
 }
 
@@ -132,4 +136,3 @@ struct SettingsView: View {
         SettingsDetailView(selectedTab: selectedTab)
     }
 }
-

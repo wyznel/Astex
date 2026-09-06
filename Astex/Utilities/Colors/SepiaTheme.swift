@@ -1,7 +1,7 @@
 import SwiftUI
 
+/// Sepia Theme
 extension Color {
-    // Earth & Sepia Theme
     
     /// The main background color, warm off-white in light mode, deep muted brown in dark mode.
     static let sepiaBackground = Color(nsColor: NSColor(name: nil) { appearance in

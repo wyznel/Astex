@@ -76,6 +76,7 @@ struct OnboardingView: View {
         
         @Binding var PageIndex: Int
         @Binding var ShowInstallEngineView: Bool
+        @ObservedObject private var settings = Settings.shared
         
         @State private var isGetStartedButtonHovered = false
         
@@ -128,9 +129,9 @@ struct OnboardingView: View {
                 )
                 .glassEffect(
                     isGetStartedButtonHovered
-                    ? Settings.shared.glassEffect
+                    ? settings.glassEffect
                         .tint(Color.sepiaAccent.opacity(0.3))
-                    : Settings.shared.glassEffect,
+                    : settings.glassEffect,
                     in: Capsule()
                 )
                 .onHover { isHovered in
@@ -145,7 +146,7 @@ struct OnboardingView: View {
             .padding(20)
             .frame(maxHeight: 175)
             .glassEffect(
-                Settings.shared.glassEffect,
+                settings.glassEffect,
                 in: .rect(cornerRadius: 12)
             )
             .scaleEffect(finish ? 0.0 : 1)

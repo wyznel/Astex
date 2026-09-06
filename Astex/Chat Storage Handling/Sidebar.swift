@@ -123,7 +123,7 @@ struct ChatActionHandling: View {
                 }
             }
         }
-        .animation(.spring(duration: Settings.shared.animationDelay), value: chats)
+        .animation(.spring(duration: settings.animationDelay), value: chats)
     }
     
     struct ChatButton: View {
@@ -205,6 +205,7 @@ struct ChatActionHandling: View {
     }
     
     struct ChatRowButtonStyle: ButtonStyle {
+        @ObservedObject private var settings = Settings.shared
         @State private var isHovered: Bool = false
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
@@ -215,7 +216,7 @@ struct ChatActionHandling: View {
                     in: RoundedRectangle(cornerRadius: 6)
                 )
                 .onHover { isHovered = $0 }
-                .animation(.spring(duration: Settings.shared.animationDelay), value: isHovered)
+                .animation(.spring(duration: settings.animationDelay), value: isHovered)
             
         }
     }

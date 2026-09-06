@@ -39,7 +39,7 @@ struct ToolTip<HoverContent: View>: ViewModifier {
                     hoverContent()
                         .padding(8)
                         .fixedSize()
-                        .background(Capsule().fill(Color.sepiaSurface))
+                        .background(Capsule().fill(ThemesManager.shared.getSurfaceColour()))
                         .overlay(
                             Capsule()
                                 .strokeBorder(.separator.opacity(0.35), lineWidth: 1)

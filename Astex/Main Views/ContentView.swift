@@ -27,6 +27,7 @@ struct ContentView: View {
     @ObservedObject private var permissionStore = PermissionStore.shared
     
     private let utilities = Utilities.shared
+    private let themesManager = ThemesManager.shared
     
     @State private var activeChat: Chat? = nil
     @State private var streamingChunks: [String] = []
@@ -147,7 +148,7 @@ struct ContentView: View {
                     .blur(radius: 30, opaque: true)
                     .opacity(0.6)
             } else{
-                Color.sepiaBackground
+                themesManager.getBackgroundColour()
                     .ignoresSafeArea()
             }
         }
@@ -221,7 +222,7 @@ struct ContentView: View {
                     .font(.alanSans(32))
                     .fontWeight(.bold)
                     .opacity(chatWindowEmpty ? 1 : 0)
-                    .foregroundStyle(Color.sepiaText)
+                    .foregroundStyle(themesManager.getTextColour())
                     .animation(.spring(duration: settings.animationDelay * 2), value: prompt.isEmpty)
                 userInputArea()
                     .padding(.bottom, 12)
@@ -531,7 +532,7 @@ struct ContentView: View {
                         .padding(.horizontal, -12)
                         .pickerStyle(.menu)
                         .labelsHidden()
-                        .tint(.sepiaAccent)
+                        .tint(themesManager.getAccentColour())
                         .offset(y: -2)
                         
                         Menu {
@@ -563,7 +564,7 @@ struct ContentView: View {
                         }
                         .scaleEffect(0.85)
                         .padding(.horizontal, -12)
-                        .tint(.sepiaAccent)
+                        .tint(themesManager.getAccentColour())
                         .onAppear {
                             Task {
                                 ollamaAvailableModels = await utilities.getAvailableModelsNAME_ONLY_OLLAMA()

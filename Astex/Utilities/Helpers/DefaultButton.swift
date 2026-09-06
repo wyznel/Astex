@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct DefaultButton: View {
+    @ObservedObject private var settings = Settings.shared
     let text: String
     let imageShape: String
     let action: () -> Void
@@ -28,11 +29,11 @@ struct DefaultButton: View {
         }
         .glassEffect(
             hovered
-                ? Settings.shared.glassEffect.tint(Color.sepiaAccent.opacity(0.3))
-                : Settings.shared.glassEffect.tint(Color.sepiaAccent.opacity(0.125)),
+            ? settings.glassEffect.tint(ThemesManager.shared.getAccentColour().opacity(0.3))
+            : settings.glassEffect.tint(ThemesManager.shared.getAccentColour().opacity(0.125)),
             in: RoundedRectangle(cornerRadius: 12)
         )
-        .animation(.spring(duration: Settings.shared.animationDelay), value: hovered)
+        .animation(.spring(duration: settings.animationDelay), value: hovered)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .buttonStyle(.plain)
         .onHover { isHovered in

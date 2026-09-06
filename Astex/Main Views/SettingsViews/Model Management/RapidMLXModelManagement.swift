@@ -131,7 +131,7 @@ private struct RapidMLXModelRow: View {
         }
         .padding(.vertical, 2)
         .background(
-            Color.sepiaAccent.opacity(selectedModel == displayName ? 0.1 : 0),
+            ThemesManager.shared.getAccentColour().opacity(selectedModel == displayName ? 0.1 : 0),
             in: RoundedRectangle(cornerRadius: 6)
         )
     }
@@ -146,6 +146,7 @@ private struct RapidMLXModelRow: View {
 }
 
 struct RapidMLXModelInputCard: View {
+    @ObservedObject private var settings = Settings.shared
     @Binding private var showsPullCard: Bool
     let onDone: () async -> Void
 
@@ -178,7 +179,7 @@ struct RapidMLXModelInputCard: View {
                     .disableAutocorrection(true)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
-                    .glassEffect(Settings.shared.glassEffect, in: .capsule)
+                    .glassEffect(settings.glassEffect, in: .capsule)
                     .disabled(isPulling)
 
                 Button {
@@ -188,8 +189,8 @@ struct RapidMLXModelInputCard: View {
                         .font(.system(size: 20))
                         .foregroundStyle(
                             modelName.isEmpty
-                                ? Color.sepiaText.opacity(0.2)
-                                : Color.sepiaAccent
+                            ? ThemesManager.shared.getTextColour().opacity(0.2)
+                            : ThemesManager.shared.getAccentColour()
                         )
                 }
                 .buttonStyle(.plain)
@@ -205,10 +206,10 @@ struct RapidMLXModelInputCard: View {
             if isPulling {
                 VStack(spacing: 6) {
                     ProgressView()
-                        .tint(Color.sepiaAccent)
+                        .tint(ThemesManager.shared.getAccentColour())
                     Text("Downloading model: \(pulledModelName)...")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.sepiaText.opacity(0.7))
+                        .foregroundStyle(ThemesManager.shared.getTextColour().opacity(0.7))
                         .lineLimit(1)
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -218,7 +219,7 @@ struct RapidMLXModelInputCard: View {
                 VStack(spacing: 8) {
                     Text("Finished downloading model: \(pulledModelName)")
                         .font(.system(size: 12))
-                        .foregroundStyle(Color.sepiaText)
+                        .foregroundStyle(ThemesManager.shared.getTextColour())
                     Button("Done") {
                         showsPullCard = false
                         Task { await onDone() }

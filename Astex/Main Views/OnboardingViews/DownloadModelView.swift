@@ -66,9 +66,9 @@ struct DownloadModelView: View {
             )
             .glassEffect(
                 isContinueButtonHovered
-                ? Settings.shared.glassEffect
+                ? settings.glassEffect
                     .tint(Color.sepiaAccent.opacity(0.3))
-                : Settings.shared.glassEffect,
+                : settings.glassEffect,
                 in: Capsule()
             )
             .onHover { isHovered in
@@ -102,9 +102,9 @@ struct DownloadModelView: View {
             )
             .glassEffect(
                 isSkipButtonHovered
-                ? Settings.shared.glassEffect
+                ? settings.glassEffect
                     .tint(Color.sepiaAccent.opacity(0.3))
-                : Settings.shared.glassEffect,
+                : settings.glassEffect,
                 in: Capsule()
             )
             .onHover { isHovered in
@@ -137,6 +137,7 @@ private struct OllamaDownloadModelView: View {
     @State private var temp_count: Int = 1
     
     let utilities = Utilities.shared
+    @ObservedObject var settings = Settings.shared
     
     var body: some View {
         VStack(spacing: 16) {
@@ -165,7 +166,7 @@ private struct OllamaDownloadModelView: View {
                     .disableAutocorrection(true)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
-                    .glassEffect(Settings.shared.glassEffect, in: .capsule)
+                    .glassEffect(settings.glassEffect, in: .capsule)
                     .disabled(downloadInProgress)
                 
                 Button {
@@ -259,7 +260,7 @@ private struct OllamaDownloadModelView: View {
         }
         .padding(20)
         .frame(width: 320, height: 250)
-        .glassEffect(Settings.shared.glassEffect, in: .rect(cornerRadius: 18))
+        .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 18))
         .shadow(color: .black.opacity(0.15), radius: 20, y: 8)
         .onHover { hovered in
             isCardHovered = hovered
@@ -283,6 +284,7 @@ private struct RapidMLXDownloadModelView: View {
     @State private var isSuccess: Bool = false
     @State private var isCardHovered: Bool = false
     
+    @ObservedObject var settings = Settings.shared
     
     var body: some View {
         VStack(spacing: 16) {
@@ -311,7 +313,7 @@ private struct RapidMLXDownloadModelView: View {
                     .disableAutocorrection(true)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
-                    .glassEffect(Settings.shared.glassEffect, in: .capsule)
+                    .glassEffect(settings.glassEffect, in: .capsule)
                     .disabled(downloadInProgress)
                 
                 Button {
@@ -383,7 +385,7 @@ private struct RapidMLXDownloadModelView: View {
         }
         .padding(20)
         .frame(width: 320, height: 250)
-        .glassEffect(Settings.shared.glassEffect, in: .rect(cornerRadius: 18))
+        .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 18))
         .shadow(color: .black.opacity(0.15), radius: 20, y: 8)
         .onHover { hovered in
             isCardHovered = hovered
