@@ -42,9 +42,9 @@ struct AstexApp: App {
     
     private var preferredScheme: ColorScheme? {
         switch settings.lightScheme {
-        case "light":
+        case .light:
             return .light
-        case "dark":
+        case .dark:
             return .dark
         default:
             return nil

@@ -12,6 +12,15 @@ class ThemesManager {
     
     @ObservedObject var settings = Settings.shared
     
+    func checkThemePrefferedLightScheme(_ theme: ColourThemes) -> AppearanceOption {
+        switch theme {
+        case .sepia, .forest:
+            return .system
+        case .nord:
+            return .dark
+        }
+    }
+    
     func getBackgroundColour() -> Color {
         switch settings.colourTheme {
         case .sepia:

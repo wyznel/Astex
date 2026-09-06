@@ -58,37 +58,23 @@ struct AppearanceTabView: View {
 
         @ObservedObject var settings = Settings.shared
 
-        private enum AppearanceOption: String, CaseIterable, Identifiable {
-            case system
-            case light
-            case dark
-
-            var id: String { rawValue }
-
-            var title: String {
-                rawValue.capitalized
-            }
-
-            var systemImage: String {
-                switch self {
-                case .system:
-                    return "display"
-                case .light:
-                    return "sun.max"
-                case .dark:
-                    return "moon"
-                }
-            }
-        }
-
         var body: some View {
             HStack(spacing: 12) {
                 ForEach(AppearanceOption.allCases) { option in
-                    let isSelected = settings.lightScheme == option.rawValue
+                    let isSelected = settings.lightScheme.rawValue == option.rawValue
 
                     Button {
+                        
+                        var userAppearanceChoice: AppearanceOption = option
+                        
+                        /// Certain themes have locked light/dark modes. This locks the selection whilst one of those themes is enabled.
+                        let isThemeLockedToAppearance: AppearanceOption = ThemesManager.shared.checkThemePrefferedLightScheme(settings.colourTheme)
+                        if isThemeLockedToAppearance != .system {
+                            userAppearanceChoice = isThemeLockedToAppearance
+                        }
+                        
                         withAni {
-                            settings.lightScheme = option.rawValue
+                            settings.lightScheme = userAppearanceChoice
                         }
                     } label: {
                         VStack(spacing: 12) {
@@ -165,7 +151,7 @@ struct AppearanceTabView: View {
                             .fixedSize()
                     }
 
-                    Picker("Engine", selection: $settings.colourTheme) {
+                    Picker("Colour Theme", selection: $settings.colourTheme) {
                         ForEach(ColourThemes.allCases, id: \.self) { theme in
                             Text(theme.rawValue)
                                 .tag(theme)
