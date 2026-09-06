@@ -19,15 +19,18 @@
 ## 03 Chat experience
 - [x] Update chat interface
 - [x] Allow uploads of files
+  - [x] Drag and drop files
 - [x] Fix chat scroll resetting to top when sending a chat
 
 ## 04 Onboarding
 - [x] Implemented Onboarding Menu
 
-## 05 In Progress
+## 06 In Progress
+- [ ] Improved model download menu.
+- [ ] 
 - [ ] More Tools
     - [ ] File management
-        - [ ] read_file (companion to create_document)
+        - [ ] read_file
         - [ ] list_directory
         - [ ] search_files (Spotlight-style via NSMetadataQuery)
     - [ ] Web search (keyless endpoint, e.g. DuckDuckGo)
