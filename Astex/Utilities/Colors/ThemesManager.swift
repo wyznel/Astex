@@ -18,6 +18,8 @@ class ThemesManager {
             return .sepiaBackground
         case .forest:
             return .forestBackground
+        case .nord:
+            return .nordBackground
         }
     }
     
@@ -27,6 +29,8 @@ class ThemesManager {
             return .sepiaText
         case .forest:
             return .forestText
+        case .nord:
+            return .nordText
         }
     }
     
@@ -36,6 +40,8 @@ class ThemesManager {
             return .sepiaSurface
         case .forest:
             return .forestSurface
+        case .nord:
+            return .nordSurface
         }
     }
     
@@ -45,6 +51,8 @@ class ThemesManager {
             return .sepiaAccent
         case .forest:
             return .forestAccent
+        case .nord:
+            return .nordAccent
         }
     }
 }

@@ -8,4 +8,5 @@
 public enum ColourThemes: String, CaseIterable {
     case sepia = "Sepia"
     case forest = "Forest Green"
+    case nord = "Nord"
 }

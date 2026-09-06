@@ -14,20 +14,11 @@ struct AppearanceTabView: View {
     @ObservedObject private var settings = Settings.shared
     
     var body: some View {
-        VStack(spacing: 10 ) {
+        VStack(spacing: 10) {
+            LightDarkModePickerView()
+            Divider()
             ToggleBackgroundImageView()
             ThemePickerView()
-            
-            StructuredText(markdown:
-                """
-                ```
-                \n
-                This page is currently under construction.
-                Check ROADMAP.md to view future updates.
-                \n
-                ```
-                """)
-            .frame(maxWidth: 600)
         }
     }
     
@@ -63,6 +54,83 @@ struct AppearanceTabView: View {
         }
     }
     
+    struct LightDarkModePickerView: View {
+
+        @ObservedObject var settings = Settings.shared
+
+        private enum AppearanceOption: String, CaseIterable, Identifiable {
+            case system
+            case light
+            case dark
+
+            var id: String { rawValue }
+
+            var title: String {
+                rawValue.capitalized
+            }
+
+            var systemImage: String {
+                switch self {
+                case .system:
+                    return "display"
+                case .light:
+                    return "sun.max"
+                case .dark:
+                    return "moon"
+                }
+            }
+        }
+
+        var body: some View {
+            HStack(spacing: 12) {
+                ForEach(AppearanceOption.allCases) { option in
+                    let isSelected = settings.lightScheme == option.rawValue
+
+                    Button {
+                        withAni {
+                            settings.lightScheme = option.rawValue
+                        }
+                    } label: {
+                        VStack(spacing: 12) {
+                            Image(systemName: option.systemImage)
+                                .font(.system(size: 15, weight: .regular))
+                                .symbolRenderingMode(.monochrome)
+
+                            Text(option.title)
+                                .font(.headline.weight(.semibold))
+                        }
+                        .foregroundStyle(ThemesManager.shared.getTextColour().opacity(0.8))
+                        .frame(maxWidth: .infinity, minHeight: 108)
+                        .contentShape(RoundedRectangle(cornerRadius: 14))
+                        .background {
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(ThemesManager.shared.getSurfaceColour().opacity(0.55))
+                        }
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(
+                                    ThemesManager.shared.getTextColour().opacity(isSelected ? 0.65 : 0.1),
+                                    lineWidth: isSelected ? 2 : 1
+                                )
+                        }
+                        .overlay {
+                            if isSelected {
+                                RoundedRectangle(cornerRadius: 11)
+                                    .inset(by: 3)
+                                    .stroke(ThemesManager.shared.getTextColour().opacity(0.12), lineWidth: 1)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("\(option.title) appearance")
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
+                }
+            }
+            .frame(maxWidth: 600)
+            .animation(.spring(duration: settings.animationDelay), value: settings.lightScheme)
+        }
+    }
+
     struct ThemePickerView: View {
         
         @ObservedObject private var settings = Settings.shared

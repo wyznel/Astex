@@ -40,6 +40,17 @@ struct AstexApp: App {
         NotificationManager.shared.requestAuthorization()
     }
     
+    private var preferredScheme: ColorScheme? {
+        switch settings.lightScheme {
+        case "light":
+            return .light
+        case "dark":
+            return .dark
+        default:
+            return nil
+        }
+    }
+    
     var body: some Scene {
         WindowGroup {
             
@@ -59,7 +70,7 @@ struct AstexApp: App {
                         .windowResizeBehavior(.disabled)
                 }
             }
-            .preferredColorScheme(settings.isFirstOpen ? .dark : nil)
+            .preferredColorScheme(preferredScheme)
         }
         .commands {
             CommandGroup(after: .appInfo) {

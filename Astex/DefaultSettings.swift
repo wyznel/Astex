@@ -6,7 +6,6 @@ class Settings: ObservableObject {
     static let shared = Settings()
     
     @Published var glassEffect: Glass = .regular
-    @Environment(\.colorScheme) var colorScheme: ColorScheme
     @Published var animationDelay: Double = 0.25
     @Published var settingsOpened: Bool = false
     
@@ -32,6 +31,7 @@ class Settings: ObservableObject {
     }
     
     @AppStorage("backgroundToggle") var isBackgroundImageEnabled: Bool = false
+    @AppStorage("Appearance") var lightScheme = "system"
     @AppStorage("ColourTheme") var colourTheme: ColourThemes = .forest {
         didSet {
             objectWillChange.send()
