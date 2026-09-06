@@ -15,23 +15,7 @@ struct AppearanceTabView: View {
     
     var body: some View {
         VStack(spacing: 10 ) {
-            HStack(spacing: 12) {
-                Text("Use background image")
-                    .font(.headline.weight(.medium))
-                    .foregroundStyle(.primary)
-                    .labelStyle(.titleAndIcon)
-
-                Spacer(minLength: 8)
-                
-                Toggle("Use background image", isOn: $settings.isBackgroundImageEnabled)
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .glassEffect(settings.glassEffect.tint(ThemesManager.shared.getBackgroundColour().opacity(0.5)), in: .rect(cornerRadius: 10))
-            .frame(maxWidth: 600)
-            
+            ToggleBackgroundImageView()
             ThemePickerView()
             
             StructuredText(markdown:
@@ -44,6 +28,38 @@ struct AppearanceTabView: View {
                 ```
                 """)
             .frame(maxWidth: 600)
+        }
+    }
+    
+    struct ToggleBackgroundImageView: View {
+        
+        @ObservedObject var settings = Settings.shared
+        
+        var body: some View {
+            
+            VStack(alignment: .leading) {
+                Text("Toggle Background Image in Main Area")
+                    .font(.headline)
+
+                HStack(spacing: 12) {
+                    Text("Enable / Disable")
+                        .font(.headline.weight(.medium))
+                        .foregroundStyle(.primary)
+
+                    Spacer(minLength: 8)
+                    
+                    Toggle("Use background image", isOn: $settings.isBackgroundImageEnabled)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .glassEffect(
+                    settings.glassEffect.tint(ThemesManager.shared.getBackgroundColour().opacity(0.5)),
+                    in: .rect(cornerRadius: 10)
+                )
+                .frame(maxWidth: 600)
+            }
         }
     }
     
@@ -68,7 +84,7 @@ struct AppearanceTabView: View {
                         withAni {
                             isResetIconRotated = true
                         }
-                        settings.selectedEngine = .ollama
+                        settings.colourTheme = .forest
                         isResetIconRotated = false
                     } label: {
                         Image(systemName: "arrow.trianglehead.counterclockwise")
