@@ -42,7 +42,7 @@ struct OnboardingView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.sepiaBackground)
+        .background(SepiaTheme().background)
         .onKeyPress(keys: [.rightArrow], phases: .down) { keyPress in
             withAni {
                 PageIndex += 1
@@ -64,7 +64,7 @@ struct OnboardingView: View {
                 Circle()
                     .frame(width: 5, height: 5)
                     .foregroundStyle(
-                        PageIndex == index ? Color.sepiaAccent : Color.gray
+                        PageIndex == index ? SepiaTheme().accent : Color.gray
                     )
             }
         }
@@ -89,7 +89,7 @@ struct OnboardingView: View {
                         .foregroundColor(.white)
                         .font(.alanSans(40))
                         .fontWeight(.bold)
-                        .foregroundStyle(Color.sepiaText)
+                        .foregroundStyle(SepiaTheme().text)
                         .scaleEffect(toggle ? 0.0 : 1)
                         .animation(.spring(duration: 0.5), value: toggle)
                 }
@@ -130,7 +130,7 @@ struct OnboardingView: View {
                 .glassEffect(
                     isGetStartedButtonHovered
                     ? settings.glassEffect
-                        .tint(Color.sepiaAccent.opacity(0.3))
+                        .tint(SepiaTheme().accent.opacity(0.3))
                     : settings.glassEffect,
                     in: Capsule()
                 )
@@ -210,7 +210,7 @@ struct OnboardingView: View {
 
         private func orbitingBlob(size: CGFloat, opacity: Double, radius: CGFloat, duration: Double, clockwise: Bool, offsetX: Double) -> some View {
             Circle()
-                .fill(Color.sepiaAccent.opacity(opacity))
+                .fill(SepiaTheme().accent.opacity(opacity))
                 .frame(width: size, height: size)
                 .blur(radius: size * 0.25)
                 .offset(x: offsetX, y: -radius)

@@ -68,7 +68,7 @@ struct InstallEngineView: View {
             .glassEffect(
                 isContinueButtonHovered && !isContinueButtonDisabled
                 ? settings.glassEffect
-                    .tint(Color.sepiaAccent.opacity(0.3))
+                    .tint(SepiaTheme().accent.opacity(0.3))
                 : settings.glassEffect,
                 in: Capsule()
             )

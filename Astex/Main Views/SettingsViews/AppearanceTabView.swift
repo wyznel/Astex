@@ -68,7 +68,7 @@ struct AppearanceTabView: View {
                         var userAppearanceChoice: AppearanceOption = option
                         
                         /// Certain themes have locked light/dark modes. This locks the selection whilst one of those themes is enabled.
-                        let isThemeLockedToAppearance: AppearanceOption = ThemesManager.shared.checkThemePrefferedLightScheme(settings.colourTheme)
+                        let isThemeLockedToAppearance: AppearanceOption = ThemesManager.shared.checkThemePrefferedLightScheme(settings.colourTheme.theme)
                         if isThemeLockedToAppearance != .system {
                             userAppearanceChoice = isThemeLockedToAppearance
                         }
@@ -138,7 +138,7 @@ struct AppearanceTabView: View {
                         withAni {
                             isResetIconRotated = true
                         }
-                        settings.colourTheme = .forest
+                        settings.colourTheme = .sepia
                         isResetIconRotated = false
                     } label: {
                         Image(systemName: "arrow.trianglehead.counterclockwise")
@@ -147,13 +147,13 @@ struct AppearanceTabView: View {
                     }
                     .buttonStyle(.plain)
                     .tooltip(delay: 1.0, offsetX: 75) {
-                        Text("Reset to default theme (forest)")
+                        Text("Reset to default theme (Sage)")
                             .fixedSize()
                     }
 
                     Picker("Colour Theme", selection: $settings.colourTheme) {
                         ForEach(ColourThemes.allCases, id: \.self) { theme in
-                            Text(theme.rawValue)
+                            Text(theme.theme.raw)
                                 .tag(theme)
                         }
                     }

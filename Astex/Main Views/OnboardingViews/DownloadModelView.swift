@@ -67,7 +67,7 @@ struct DownloadModelView: View {
             .glassEffect(
                 isContinueButtonHovered
                 ? settings.glassEffect
-                    .tint(Color.sepiaAccent.opacity(0.3))
+                    .tint(SepiaTheme().accent.opacity(0.3))
                 : settings.glassEffect,
                 in: Capsule()
             )
@@ -103,7 +103,7 @@ struct DownloadModelView: View {
             .glassEffect(
                 isSkipButtonHovered
                 ? settings.glassEffect
-                    .tint(Color.sepiaAccent.opacity(0.3))
+                    .tint(SepiaTheme().accent.opacity(0.3))
                 : settings.glassEffect,
                 in: Capsule()
             )
@@ -146,15 +146,15 @@ private struct OllamaDownloadModelView: View {
                 VStack(spacing: 8) {
                     Image(systemName: "arrow.down.circle.fill")
                         .font(.system(size: 36, weight: .medium))
-                        .foregroundStyle(Color.sepiaAccent)
+                        .foregroundStyle(SepiaTheme().accent)
                     
                     Text("Pull Model via Ollama")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(Color.sepiaText)
+                        .foregroundStyle(SepiaTheme().text)
                     
                     InlineText(markdown: "See [Ollama.com](https://ollama.com/search) to browse available models.")
                         .font(.system(size: 11))
-                        .foregroundStyle(Color.sepiaText.opacity(0.5))
+                        .foregroundStyle(SepiaTheme().text.opacity(0.5))
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 4)
@@ -212,8 +212,8 @@ private struct OllamaDownloadModelView: View {
                         .font(.system(size: 20))
                         .foregroundStyle(
                             input_field.isEmpty
-                                ? Color.sepiaText.opacity(0.2)
-                                : Color.sepiaAccent
+                            ? SepiaTheme().text.opacity(0.2)
+                            : SepiaTheme().accent
                         )
                 }
                 .buttonStyle(.plain)
@@ -231,19 +231,19 @@ private struct OllamaDownloadModelView: View {
             if downloadInProgress && !isSuccess {
                 VStack(spacing: 6) {
                     ProgressView(value: progress, total: 100)
-                        .tint(Color.sepiaAccent)
+                        .tint(SepiaTheme().accent)
                     
                     HStack {
                         Text(progressText)
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(Color.sepiaText.opacity(0.7))
+                            .foregroundStyle(SepiaTheme().text.opacity(0.7))
                             .lineLimit(1)
                         
                         Spacer()
                         
                         Text("\(Int(progress))%")
                             .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(Color.sepiaAccent)
+                            .foregroundStyle(SepiaTheme().accent)
                     }
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -293,15 +293,15 @@ private struct RapidMLXDownloadModelView: View {
                 VStack(spacing: 8) {
                     Image(systemName: "arrow.down.circle.fill")
                         .font(.system(size: 36, weight: .medium))
-                        .foregroundStyle(Color.sepiaAccent)
+                        .foregroundStyle(SepiaTheme().accent)
                     
                     Text("Pull Model via RapidMLX")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(Color.sepiaText)
+                        .foregroundStyle(SepiaTheme().text)
                     
                     InlineText(markdown: "See [models.rapidmlx.com](https://models.rapidmlx.com) to browse available models.")
                         .font(.system(size: 11))
-                        .foregroundStyle(Color.sepiaText.opacity(0.5))
+                        .foregroundStyle(SepiaTheme().text.opacity(0.5))
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 4)
@@ -346,8 +346,8 @@ private struct RapidMLXDownloadModelView: View {
                         .font(.system(size: 20))
                         .foregroundStyle(
                             input_field.isEmpty
-                                ? Color.sepiaText.opacity(0.2)
-                                : Color.sepiaAccent
+                            ? SepiaTheme().text.opacity(0.2)
+                            : SepiaTheme().accent
                         )
                 }
                 .buttonStyle(.plain)
@@ -365,11 +365,11 @@ private struct RapidMLXDownloadModelView: View {
             if downloadInProgress && !isSuccess {
                 VStack(spacing: 6) {
                     ProgressView()
-                        .tint(Color.sepiaAccent)
+                        .tint(SepiaTheme().accent)
                     
                     Text("Downloading model: \(modelName)...")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.sepiaText.opacity(0.7))
+                        .foregroundStyle(SepiaTheme().text.opacity(0.7))
                         .lineLimit(1)
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -379,7 +379,7 @@ private struct RapidMLXDownloadModelView: View {
                 VStack(spacing: 8) {
                     Text("Finished downloading model: \(modelName)")
                         .font(.system(size: 12))
-                        .foregroundStyle(Color.sepiaText)
+                        .foregroundStyle(SepiaTheme().text)
                 }
             }
         }

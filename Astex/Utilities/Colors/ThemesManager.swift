@@ -12,56 +12,70 @@ class ThemesManager {
     
     @ObservedObject var settings = Settings.shared
     
-    func checkThemePrefferedLightScheme(_ theme: ColourThemes) -> AppearanceOption {
-        switch theme {
-        case .sepia, .forest:
-            return .system
-        case .nord:
-            return .dark
-        }
+    func checkThemePrefferedLightScheme(_ theme: CustomTheme) -> AppearanceOption {
+        return theme.preferredAppearance
     }
     
     func getBackgroundColour() -> Color {
-        switch settings.colourTheme {
-        case .sepia:
-            return .sepiaBackground
-        case .forest:
-            return .forestBackground
-        case .nord:
-            return .nordBackground
-        }
+        return settings.colourTheme.theme.background
     }
-    
     func getTextColour() -> Color {
-        switch settings.colourTheme {
-        case .sepia:
-            return .sepiaText
-        case .forest:
-            return .forestText
-        case .nord:
-            return .nordText
-        }
+        return settings.colourTheme.theme.text
     }
-    
     func getSurfaceColour() -> Color {
-        switch settings.colourTheme {
-        case .sepia:
-            return .sepiaSurface
-        case .forest:
-            return .forestSurface
-        case .nord:
-            return .nordSurface
-        }
+        return settings.colourTheme.theme.surface
     }
     
     func getAccentColour() -> Color {
-        switch settings.colourTheme {
-        case .sepia:
-            return .sepiaAccent
-        case .forest:
-            return .forestAccent
-        case .nord:
-            return .nordAccent
-        }
+        return settings.colourTheme.theme.accent
+    }
+    
+//    func getBackgroundColour() -> Color {
+//        switch settings.colourTheme {
+//        case .sepia:
+//            return .sepiaBackground
+//        case .sage:
+//            return .sageBackground
+//        case .nord:
+//            return .nordBackground
+//        }
+//    }
+//    
+//    func getTextColour() -> Color {
+//        switch settings.colourTheme {
+//        case .sepia:
+//            return .sepiaText
+//        case .sage:
+//            return .sageText
+//        case .nord:
+//            return .nordText
+//        }
+//    }
+//    
+//    func getSurfaceColour() -> Color {
+//        switch settings.colourTheme {
+//        case .sepia:
+//            return .sepiaSurface
+//        case .sage:
+//            return .sageSurface
+//        case .nord:
+//            return .nordSurface
+//        }
+//    }
+//    
+//    func getAccentColour() -> Color {
+//        switch settings.colourTheme {
+//        case .sepia:
+//            return .sepiaAccent
+//        case .sage:
+//            return .sageAccent
+//        case .nord:
+//            return .nordAccent
+//        }
+//    }
+    
+    
+    func setTheme(_ newTheme: ColourThemes) {
+        settings.colourTheme = newTheme
     }
 }
