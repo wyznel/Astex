@@ -25,9 +25,15 @@
 ## 04 Onboarding
 - [x] Implemented Onboarding Menu
 
+## 05 Appearance Settings v0.1
+- [x] Light, Dark, System Appearance selection.
+- [x] New themes
+  - [x] Nord - Locked to dark
+  - [x] Arctic
+  - [x] Sage
+
 ## 06 In Progress
 - [ ] Improved model download menu.
-- [ ] 
 - [ ] More Tools
     - [ ] File management
         - [ ] read_file
@@ -42,4 +48,3 @@
     - [ ] get_weather (via keyless API, e.g. Open-Meteo)
     - [ ] fetch_url (be aware of prompt-injection risk from web content)
 - [ ] Add ability to connect external MCPs
-- [ ] App customisation
