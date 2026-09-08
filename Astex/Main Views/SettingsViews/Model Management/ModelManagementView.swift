@@ -146,6 +146,7 @@ struct UnloadModelButton: View {
             Image(systemName: "stop.circle")
                 .contentShape(Rectangle())
         }
+        .settingsIconButtonStyle()
         .opacity(isLoaded || selectedModel == modelName ? 1 : 0)
         .disabled(!isLoaded)
         .contentShape(Rectangle())

@@ -17,40 +17,8 @@ struct AppearanceTabView: View {
         VStack(spacing: 10) {
             LightDarkModePickerView()
             Divider()
-            ToggleBackgroundImageView()
             ThemePickerView()
-        }
-    }
-    
-    struct ToggleBackgroundImageView: View {
-        
-        @ObservedObject var settings = Settings.shared
-        
-        var body: some View {
-            
-            VStack(alignment: .leading) {
-                Text("Toggle Background Image in Main Area")
-                    .font(.headline)
-
-                HStack(spacing: 12) {
-                    Text("Enable / Disable")
-                        .font(.headline.weight(.medium))
-                        .foregroundStyle(.primary)
-
-                    Spacer(minLength: 8)
-                    
-                    Toggle("Use background image", isOn: $settings.isBackgroundImageEnabled)
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .glassEffect(
-                    settings.glassEffect.tint(ThemesManager.shared.getBackgroundColour().opacity(0.5)),
-                    in: .rect(cornerRadius: 10)
-                )
-                .frame(maxWidth: 600)
-            }
+            SelectableBackground()
         }
     }
     

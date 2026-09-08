@@ -32,6 +32,7 @@ class Settings: ObservableObject {
     
     @AppStorage("backgroundToggle") var isBackgroundImageEnabled: Bool = false
     @AppStorage("Appearance") var lightScheme: AppearanceOption = .system
+    @AppStorage("Background") var background: Backgrounds = .none
     @AppStorage("ColourTheme") var colourTheme: ColourThemes = .sepia {
         didSet {
             let isThemeLockedToAppearance: AppearanceOption = ThemesManager.shared.checkThemePrefferedLightScheme(colourTheme.theme)

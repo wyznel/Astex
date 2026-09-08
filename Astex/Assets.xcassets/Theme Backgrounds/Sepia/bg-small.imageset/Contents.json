@@ -1,8 +1,8 @@
 {
   "images" : [
     {
-      "filename" : "bg.jpg",
-      "idiom" : "universal",
+      "filename" : "bg-small.jpg",
+      "idiom" : "universal"
     }
   ],
   "info" : {

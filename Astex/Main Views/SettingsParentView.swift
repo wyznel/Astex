@@ -13,6 +13,7 @@ struct SettingsSidebarView: View {
     @Binding var selectedTab: Int
     @ObservedObject private var settings = Settings.shared
 
+    
     var body: some View {
         VStack(spacing: 8) {
             DefaultButton(text: "Back to Chats", imageShape: "arrowshape.turn.up.backward") {
@@ -107,6 +108,8 @@ struct SettingsDetailView: View {
     let selectedTab: Int
     @ObservedObject private var settings = Settings.shared
 
+    private let themesManager = ThemesManager.shared
+    
     var body: some View {
         VStack {
             switch selectedTab {
@@ -123,9 +126,19 @@ struct SettingsDetailView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            ThemesManager.shared.getBackgroundColour()
-        )
+        .background {
+            if settings.isBackgroundImageEnabled {
+                Image(settings.background.bg.fileName)
+                    .resizable()
+                    .ignoresSafeArea()
+                    .scaledToFill()
+                    .blur(radius: 30, opaque: true)
+                    .opacity(0.6)
+            } else{
+                themesManager.getBackgroundColour()
+                    .ignoresSafeArea()
+            }
+        }
     }
 }
 

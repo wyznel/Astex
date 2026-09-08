@@ -141,7 +141,7 @@ struct ContentView: View {
         }
         .background {
             if settings.isBackgroundImageEnabled {
-                Image("bg")
+                Image(settings.background.bg.fileName)
                     .resizable()
                     .ignoresSafeArea()
                     .scaledToFill()
@@ -223,7 +223,7 @@ struct ContentView: View {
                     .fontWeight(.bold)
                     .opacity(chatWindowEmpty ? 1 : 0)
                     .foregroundStyle(themesManager.getTextColour())
-                    .animation(.spring(duration: settings.animationDelay * 2), value: prompt.isEmpty)
+                    .animation(.spring(duration: settings.animationDelay * 3), value: prompt.isEmpty)
                 userInputArea()
                     .padding(.bottom, 12)
                     .animation(.spring(duration: settings.animationDelay * 2), value: prompt.isEmpty)

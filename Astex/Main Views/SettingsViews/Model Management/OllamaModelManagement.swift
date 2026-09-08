@@ -444,6 +444,7 @@ struct PullModelButton: View {
         } label: {
             Image(systemName: "plus")
         }
+        .settingsIconButtonStyle()
         .tooltip(delay: 1.0, offsetX: 40) {
             Text(tooltipText)
         }
@@ -489,6 +490,7 @@ struct ModelDeleteButton: View {
         } label: {
             Image(systemName: "trash")
         }
+        .settingsIconButtonStyle(role: .destructive)
         .tooltip {
             Text("Delete Model")
                 .fixedSize()
@@ -547,6 +549,7 @@ private struct UnloadAllModelsButton: View {
         } label: {
             Label(label.text, systemImage: "trash")
         }
+        .settingsButtonStyle()
         .disabled(!hasLoadedModels)
         .task {
             hasLoadedModels = await Utilities.shared.areAnyModelsLoaded()
@@ -577,4 +580,3 @@ private struct UnloadAllModelsButton: View {
         }
     }
 }
-

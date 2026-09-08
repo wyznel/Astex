@@ -8,9 +8,8 @@
 import SwiftUI
 
 struct SettingsTabView: View {
-    
     @ObservedObject var settings = Settings.shared
-    
+
     var body: some View {
         VStack {
             Button {
@@ -24,10 +23,10 @@ struct SettingsTabView: View {
                 settings.showParameterSize = true
                 settings.isFirstOpen = true
                 settings.selectedEngine = .ollama
-                
-            }label: {
+            } label: {
                 Label("Reset to all app defaults.", systemImage: "arrow.up.trash")
             }
+            .settingsButtonStyle(role: .destructive)
         }
     }
 }
