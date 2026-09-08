@@ -30,6 +30,7 @@ class Settings: ObservableObject {
         }
     }
     
+    @AppStorage("backgroundBlur") var backgroundBlur: Double = 30.0
     @AppStorage("backgroundToggle") var isBackgroundImageEnabled: Bool = false
     @AppStorage("Appearance") var lightScheme: AppearanceOption = .system
     @AppStorage("Background") var background: Backgrounds = .none

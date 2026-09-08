@@ -127,17 +127,10 @@ struct SettingsDetailView: View {
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            if settings.isBackgroundImageEnabled {
-                Image(settings.background.bg.fileName)
-                    .resizable()
-                    .ignoresSafeArea()
-                    .scaledToFill()
-                    .blur(radius: 30, opaque: true)
-                    .opacity(0.6)
-            } else{
+            if !settings.isBackgroundImageEnabled {
                 themesManager.getBackgroundColour()
                     .ignoresSafeArea()
-            }
+            } 
         }
     }
 }

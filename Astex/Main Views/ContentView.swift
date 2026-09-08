@@ -140,17 +140,29 @@ struct ContentView: View {
             }
         }
         .background {
-            if settings.isBackgroundImageEnabled {
-                Image(settings.background.bg.fileName)
-                    .resizable()
-                    .ignoresSafeArea()
-                    .scaledToFill()
-                    .blur(radius: 30, opaque: true)
-                    .opacity(0.6)
-            } else{
+            ZStack {
                 themesManager.getBackgroundColour()
                     .ignoresSafeArea()
+
+                if settings.isBackgroundImageEnabled {
+                    Image(settings.background.bg.fileName)
+                        .resizable()
+                        .ignoresSafeArea()
+                        .scaledToFill()
+                        .blur(radius: settings.backgroundBlur, opaque: true)
+                        .opacity(0.6)
+                        .id(settings.background)
+                        .transition(.opacity)
+                }
             }
+            .animation(
+                .spring(duration: settings.animationDelay * 2),
+                value: settings.isBackgroundImageEnabled
+            )
+            .animation(
+                .spring(duration: settings.animationDelay * 2),
+                value: settings.background
+            )
         }
     }
  
