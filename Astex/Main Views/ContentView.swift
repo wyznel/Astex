@@ -176,18 +176,16 @@ struct ContentView: View {
                         ForEach(
                             (activeChat?.messages ?? []).sorted(by: { msg, msg1 in msg.createdAt < msg1.createdAt})
                         ) { message in
-                            if message.isUser {
+                            if message.type == .user {
                                 MessageView(message: message.response, isUserMessage: true)
-                                    .transition(.opacity)
-                            } else if message.isAToolCall {
-                                MessageView(message: message.response, isUserMessage: false)
-                                    .transition(.opacity)
-                            } else if !message.isThinking {
-                                MessageView(message: message.response, isUserMessage: false)
-                                    .transition(.opacity)
-                            } else {
+                            } else if message.type == .llm(.tool) {
+                                if !settings.hideToolCallMessage {
+                                    ToolView(tools: message.response)
+                                }
+                            } else if message.type == .llm(.thinking) {
                                 ThinkingView(message: message.response)
-                                    .transition(.opacity)
+                            } else {
+                                MessageView(message: message.response, isUserMessage: false)
                             }
                         }
                         //Model is warming up / beginning its response. Show loading.
@@ -227,6 +225,7 @@ struct ContentView: View {
                 }
                 .frame(maxWidth: 810)
                 .layoutPriority(1)
+                .animation(.spring(duration: settings.animationDelay), value: settings.hideToolCallMessage)
             }
             if chatWindowEmpty { Spacer() }
             VStack(alignment: .leading, spacing: 10) {
@@ -294,7 +293,7 @@ struct ContentView: View {
         }
 
         withAni {
-            let userMessage = Message(isUser: true, response: currentPrompt, isThinking: false, isAToolCall: false)
+            let userMessage = Message(type: .user, response: currentPrompt)
             modelContext.insert(userMessage)
             activeChat?.messages.append(userMessage)
         }
@@ -403,7 +402,7 @@ struct ContentView: View {
         let fullThinkingResp = thinkingStreamingChunks.joined()
         if !fullThinkingResp.isEmpty {
             withAni {
-                let llmThinking = Message(isUser: false, response: fullThinkingResp, isThinking: true, isAToolCall: false)
+                let llmThinking = Message(type: .llm(.thinking), response: fullThinkingResp)
                 modelContext.insert(llmThinking)
                 activeChat?.messages.append(llmThinking)
             }
@@ -413,7 +412,7 @@ struct ContentView: View {
         
         if !allToolsCalled.isEmpty {
             withAni {
-                let toolCalledDisplay = Message(isUser: false, response: allToolsCalled, isThinking: false, isAToolCall: true)
+                let toolCalledDisplay = Message(type: .llm(.tool), response: allToolsCalled)
                 modelContext.insert(toolCalledDisplay)
                 activeChat?.messages.append(toolCalledDisplay)
             }
@@ -423,7 +422,7 @@ struct ContentView: View {
         let fullResponse = streamingChunks.joined()
         if !fullResponse.isEmpty {
             withAni {
-                let llmMessage = Message(isUser: false, response: fullResponse, isThinking: false, isAToolCall: false)
+                let llmMessage = Message(type: .llm(.response), response: fullResponse)
                 modelContext.insert(llmMessage)
                 activeChat?.messages.append(llmMessage)
             }
@@ -501,7 +500,7 @@ struct ContentView: View {
                         }
                         .onKeyPress(keys: [.upArrow], phases: .down) { keyPress in
                             let sorted = (activeChat?.messages ?? [])
-                                .filter { $0.isUser }
+                                .filter { $0.type == .user }
                                 .sorted { $0.createdAt < $1.createdAt }
                             
                             guard !sorted.isEmpty else { return .ignored }
@@ -643,6 +642,8 @@ struct ContentView: View {
         }
     }
     
+    
+    
     @ViewBuilder
     func MessageView(message: String, isUserMessage: Bool) -> some View {
         HStack {
@@ -655,6 +656,27 @@ struct ContentView: View {
                 .textual.textSelection(.enabled)
             if !isUserMessage { Spacer() }
         }
+    }
+    
+    @ViewBuilder
+    func ToolView(tools: String) -> some View {
+        HStack {
+            CollapsibleText(text: "Expand to show tool calls\n\(tools)", lineLimit: 1)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 10)
+                .glassEffect(settings.glassEffect, in: .rect(cornerRadius: 10))
+                .frame(maxWidth: 500, alignment: .leading)
+                .textual.textSelection(.disabled)
+            Spacer()
+        }
+        .contextMenu(menuItems: {
+            Button {
+                settings.hideToolCallMessage = true
+            }label: {
+                Text("Hide Item")
+            }
+        })
+        .opacity(0.4)
     }
     
     @ViewBuilder
