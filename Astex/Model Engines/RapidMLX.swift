@@ -32,11 +32,11 @@ class RapidMLXEngine {
                         $0.createdAt < $1.createdAt
                     }
                     var messageHistory = sorted.compactMap { message -> RapidMLX.ChatMessage? in
-                        if message.isAToolCall {
+                        if message.type == .llm(.tool) {
                             return nil
-                        } else if message.isUser {
+                        } else if message.type == .user {
                             return .user(message.response)
-                        } else if !message.isThinking {
+                        } else if message.type != .llm(.thinking) {
                             return .assistant(message.response)
                         } else {
                             return .assistant("")
@@ -106,7 +106,7 @@ class RapidMLXEngine {
 //  MARK: - Generate a Title.
     func generateTitle(_ previousMessages: [Message]) async -> String {
         do {
-            let promptForTitleGen = Message(isUser: true, response:
+            let promptForTitleGen = Message(type: .user, response:
                 """
                 Generate a short chat title based on the conversation.
                 
@@ -125,15 +125,15 @@ class RapidMLXEngine {
                 Example Valid output examples:
                 DNS Help
                 Project Astex Debugging
-                """, isThinking: false, isAToolCall: false)
+                """)
             
             var sorted = previousMessages.sorted { $0.createdAt < $1.createdAt }
             sorted.append(promptForTitleGen)
             
             let messageHistory = sorted.compactMap { message -> RapidMLX.ChatMessage? in
-                if message.isAToolCall {
+                if message.type == .llm(.tool) {
                     return nil
-                } else if message.isUser {
+                } else if message.type == .user {
                     return .user(message.response)
                 } else {
                     return .assistant(message.response)

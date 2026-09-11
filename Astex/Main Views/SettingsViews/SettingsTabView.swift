@@ -27,6 +27,12 @@ struct SettingsTabView: View {
                 Label("Reset to all app defaults.", systemImage: "arrow.up.trash")
             }
             .settingsButtonStyle(role: .destructive)
+            
+            Button {
+                settings.hideToolCallMessage = false
+            } label: {
+                Label("Show Tool Call Messages", systemImage: "exclamationmark.bubble.fill")
+            }
         }
     }
 }
