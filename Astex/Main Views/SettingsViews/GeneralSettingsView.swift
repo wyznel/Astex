@@ -12,6 +12,15 @@ struct SettingsTabView: View {
 
     var body: some View {
         VStack {
+            
+            DefaultSettingsRow(title: "Messages", subtitle: "Show tool calls in chat"){
+                Toggle("Show Tool Call Messages", isOn: !$settings.hideToolCallMessage)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+            }
+            
+            Divider()
+            
             Button {
                 if let bundleID = Bundle.main.bundleIdentifier {
                     UserDefaults.standard.removePersistentDomain(forName: bundleID)
@@ -24,15 +33,11 @@ struct SettingsTabView: View {
                 settings.isFirstOpen = true
                 settings.selectedEngine = .ollama
             } label: {
-                Label("Reset to all app defaults.", systemImage: "arrow.up.trash")
+                Label("Reset all settings", systemImage: "arrow.up.trash")
             }
             .settingsButtonStyle(role: .destructive)
             
-            Button {
-                settings.hideToolCallMessage = false
-            } label: {
-                Label("Show Tool Call Messages", systemImage: "exclamationmark.bubble.fill")
-            }
+            
         }
     }
 }

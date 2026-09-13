@@ -9,7 +9,7 @@ import UserNotifications
 
 final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationManager()
-
+    
     private override init() {
         super.init()
         UNUserNotificationCenter.current().delegate = self
@@ -37,6 +37,11 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 }
 
 public func sendNotification(title: String, body: String) {
+    if !Settings.shared.showModelDownloadCompleteNotifications {
+        print(">> Notifications disabled in-app.")
+        return
+    }
+    print("Sending notification...")
     let content = UNMutableNotificationContent()
     content.title = title
     content.subtitle = ""

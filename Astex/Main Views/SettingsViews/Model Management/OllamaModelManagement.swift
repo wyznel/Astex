@@ -312,6 +312,7 @@ struct OllamaModelInputCard: View {
             }
 
             if isComplete {
+                
                 Text("Finished downloading model: \(pulledModelName)")
                 Button("Done") {
                     showsPullCard = false
@@ -350,6 +351,7 @@ struct OllamaModelInputCard: View {
                 }
             }
             isComplete = true
+            sendNotification(title: "Model Downloaded", body: "\(pulledModelName) has finished downloading.")
         } catch {
             errorMessage = error.localizedDescription
         }
