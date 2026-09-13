@@ -7,6 +7,8 @@
 
 import Foundation
 
+/// Mainly used for caching ollama and rapid-mlx models.
+/// Only used whilst app is running, does not store data persistently.
 class DataCache {
     static let shared = DataCache()
     

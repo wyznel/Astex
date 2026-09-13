@@ -32,6 +32,8 @@ class Settings: ObservableObject {
     
     @AppStorage("HideToolCallMessage") var hideToolCallMessage: Bool = false
     
+    @AppStorage("DownloadFinishedNotification") var showModelDownloadCompleteNotifications = true
+    
     @AppStorage("backgroundBlur") var backgroundBlur: Double = 30.0
     @AppStorage("backgroundToggle") var isBackgroundImageEnabled: Bool = false
     @AppStorage("Appearance") var lightScheme: AppearanceOption = .system

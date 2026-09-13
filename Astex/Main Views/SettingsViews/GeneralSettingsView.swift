@@ -13,6 +13,22 @@ struct SettingsTabView: View {
     var body: some View {
         VStack {
             
+            
+            
+            DefaultSettingsRow(title: "Notifications", subtitle: "Show Notifications when a model has finished downloading") {
+                Toggle("blank", isOn: $settings.showModelDownloadCompleteNotifications)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+            }
+            
+            DefaultSettingsRow(title: "Test", subtitle: "Send test notification") {
+                Button {
+                    sendNotification(title: "Test Notification", body: "External test notification")
+                }label: {
+                    Text("Send")
+                }
+            }
+            
             DefaultSettingsRow(title: "Messages", subtitle: "Show tool calls in chat"){
                 Toggle("Show Tool Call Messages", isOn: !$settings.hideToolCallMessage)
                     .labelsHidden()

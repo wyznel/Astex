@@ -25,16 +25,16 @@ struct SettingsSidebarView: View {
             Divider()
 
             SettingsSidebarTabButton(
+                title: "General",
+                icon: "gearshape",
+                tabID: 2,
+                selectedTab: $selectedTab
+            )
+            
+            SettingsSidebarTabButton(
                 title: "Models",
                 icon: "server.rack",
                 tabID: 1,
-                selectedTab: $selectedTab
-            )
-
-            SettingsSidebarTabButton(
-                title: "Settings",
-                icon: "gearshape",
-                tabID: 2,
                 selectedTab: $selectedTab
             )
 
