@@ -37,23 +37,40 @@ enum ReadFile {
             ],
             required: ["path"]
         ) { input in
-            let path = input.path
-            
-            guard fileManager.fileExists(atPath: path) else {
+            guard !input.path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 return ReadFileOutput(
                     success: false,
                     contents: "",
-                    message: "The file does not exist at designated path: \(path)"
+                    message: "The file path is empty."
                 )
             }
-            
-            let contents = try String(contentsOfFile: path, encoding: .utf8)
-            print(contents)
-            return ReadFileOutput(
-                success: true,
-                contents: contents,
-                message: "Successful retrieval of file contents"
-            )
+
+            let fileURL = FileManager.resolveFile(from: input.path)
+            var isDirectory: ObjCBool = false
+
+            guard fileManager.fileExists(atPath: fileURL.path, isDirectory: &isDirectory),
+                  !isDirectory.boolValue else {
+                return ReadFileOutput(
+                    success: false,
+                    contents: "",
+                    message: "No file exists at this path: \(fileURL.path)"
+                )
+            }
+
+            do {
+                let contents = try String(contentsOf: fileURL, encoding: .utf8)
+                return ReadFileOutput(
+                    success: true,
+                    contents: contents,
+                    message: "The tool read the file at \(fileURL.path)."
+                )
+            } catch {
+                return ReadFileOutput(
+                    success: false,
+                    contents: "",
+                    message: "The tool could not read the file at \(fileURL.path): \(error.localizedDescription)"
+                )
+            }
         }
         return AnyTool(tool: tool, name: "read_file", capability: .readFile)
     }

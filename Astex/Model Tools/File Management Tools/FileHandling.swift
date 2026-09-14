@@ -34,6 +34,23 @@ enum FileHandling {
 }
 
 extension FileManager {
+    /// Resolves a file URL from a model-provided path.
+    ///
+    /// - Tilde (`~`) is expanded to the home directory.
+    /// - Relative paths are resolved against the home directory.
+    nonisolated static func resolveFile(from rawPath: String) -> URL {
+        let trimmedPath = rawPath.trimmingCharacters(in: .whitespacesAndNewlines)
+        let expandedPath = (trimmedPath as NSString).expandingTildeInPath
+
+        if expandedPath.hasPrefix("/") {
+            return URL(fileURLWithPath: expandedPath).standardizedFileURL
+        }
+
+        return FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(expandedPath)
+            .standardizedFileURL
+    }
+
     /// Resolves a full directory URL from a model-provided path.
     ///
     /// - Tilde (`~`) is expanded to the home directory.
