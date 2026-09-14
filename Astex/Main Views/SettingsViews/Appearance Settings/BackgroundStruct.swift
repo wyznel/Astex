@@ -23,7 +23,7 @@ struct SelectableBackground: View {
                         in: 0...100,
                         step: 1,
                         onEditingChanged: { editing in
-                                isEditing = editing
+                            isEditing = editing
                         }
                     )
                     .frame(maxWidth: 100)

@@ -34,45 +34,6 @@ enum DocumentCreation {
             .appendingPathComponent("Astex", isDirectory: true)
     }
 
-    /// Returns true when a path component looks like a file (has a dot extension,
-    /// e.g. `report.md`) rather than a directory name (e.g. `reports` or `.config`).
-    private static func looksLikeFilePath(_ component: String) -> Bool {
-        let nsComponent = component as NSString
-        let dot = nsComponent.range(of: ".")
-        return dot.location > 0 && dot.location < nsComponent.length - 1
-    }
-
-    /// Resolves the directory a document should be saved into from the model-provided path.
-    ///
-    /// - Tilde (`~`) is expanded to the home directory.
-    /// - Relative paths are resolved against the home directory.
-    /// - An empty path falls back to `~/Downloads/Astex/`.
-    /// - If the path actually includes the filename (e.g. `~/Desktop/report.md`), that
-    ///   component is dropped so the file isn't written into a folder named `report.md`.
-    static func resolveDirectory(from rawPath: String, filename: String) -> URL {
-        let trimmedPath = rawPath.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard !trimmedPath.isEmpty else {
-            return outputDirectory
-        }
-
-        let expanded = (trimmedPath as NSString).expandingTildeInPath
-        var directory: URL
-        if expanded.hasPrefix("/") {
-            directory = URL(fileURLWithPath: expanded, isDirectory: true)
-        } else {
-            directory = FileManager.default.homeDirectoryForCurrentUser
-                .appendingPathComponent(expanded, isDirectory: true)
-        }
-
-        if directory.lastPathComponent.lowercased() == filename.lowercased()
-            || looksLikeFilePath(directory.lastPathComponent) {
-            directory.deleteLastPathComponent()
-        }
-
-        return directory
-    }
-
     /// Builds and returns the Ollama Tool wrapped in an AnyTool for registry registration.
     static func makeTool() -> AnyTool<DocumentCreationInput, DocumentCreationOutput> {
         let tool = Tool<DocumentCreationInput, DocumentCreationOutput>(
@@ -105,7 +66,11 @@ enum DocumentCreation {
             }
 
             do {
-                let directory = await resolveDirectory(from: input.path ?? "", filename: sanitised)
+                let directory = FileManager.resolveDirectory(
+                    from: input.path ?? "",
+                    filename: sanitised,
+                    fallbackDirectory: outputDirectory
+                )
                 let fileURL = directory.appendingPathComponent(sanitised)
 
                 

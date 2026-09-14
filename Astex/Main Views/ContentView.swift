@@ -52,7 +52,9 @@ struct ContentView: View {
     /// to the array below. No other files need to change.
     private let toolRegistry = ToolRegistry(tools: [
         DocumentCreation.makeTool(),
-        CurrentTime.makeTool()
+        CurrentTime.makeTool(),
+        ListDirectory.makeTool(),
+        ReadFile.makeTool()
     ])
 
     var body: some View {

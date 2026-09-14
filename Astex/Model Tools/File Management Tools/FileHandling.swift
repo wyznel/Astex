@@ -32,3 +32,49 @@ enum FileHandling {
         return sections.joined(separator: "\n\n")
     }
 }
+
+extension FileManager {
+    /// Resolves a full directory URL from a model-provided path.
+    ///
+    /// - Tilde (`~`) is expanded to the home directory.
+    /// - Relative paths are resolved against the home directory.
+    /// - An empty path uses `fallbackDirectory`, or the home directory if no fallback exists.
+    /// - If `filename` exists and the path ends in a file-like component, the function removes that component.
+    nonisolated static func resolveDirectory(
+        from rawPath: String,
+        filename: String? = nil,
+        fallbackDirectory: URL? = nil
+    ) -> URL {
+        let trimmedPath = rawPath.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedPath.isEmpty else {
+            return fallbackDirectory ?? FileManager.default.homeDirectoryForCurrentUser
+        }
+
+        let expanded = (trimmedPath as NSString).expandingTildeInPath
+        var directory: URL
+        if expanded.hasPrefix("/") {
+            directory = URL(fileURLWithPath: expanded, isDirectory: true)
+        } else {
+            directory = FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent(expanded, isDirectory: true)
+        }
+
+        if let filename {
+            let lastComponent = directory.lastPathComponent
+            if lastComponent.caseInsensitiveCompare(filename) == .orderedSame
+                || looksLikeFilePath(lastComponent) {
+                directory.deleteLastPathComponent()
+            }
+        }
+
+        return directory
+    }
+
+    /// Returns true when a path component has a file extension.
+    private nonisolated static func looksLikeFilePath(_ component: String) -> Bool {
+        let nsComponent = component as NSString
+        let dot = nsComponent.range(of: ".")
+        return dot.location > 0 && dot.location < nsComponent.length - 1
+    }
+}

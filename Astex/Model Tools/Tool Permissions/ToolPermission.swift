@@ -12,5 +12,5 @@ enum ToolPermission: String {
 }
 
 enum ToolCapability: String, CaseIterable {
-    case readFiles, createFiles, writeFiles, deleteFiles, getTime
+    case readFile, createFiles, writeFiles, deleteFiles, getTime, listDirectory
 }
