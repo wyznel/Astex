@@ -32,8 +32,7 @@
   - [x] Arctic
   - [x] Sage
 
-## 06 In Progress
-- [ ] Improved model download menu.
+## 07 Tools
 - [ ] More Tools
     - [ ] File management
         - [x] read_file
@@ -47,3 +46,7 @@
     - [ ] get_weather (via keyless API, e.g. Open-Meteo)
     - [ ] fetch_url (be aware of prompt-injection risk from web content)
 - [ ] Add ability to connect external MCPs
+- [ ] 
+## 06 In Progress
+- [ ] Improved model download menu.
+
