@@ -36,9 +36,8 @@
 - [ ] Improved model download menu.
 - [ ] More Tools
     - [ ] File management
-        - [ ] read_file
-        - [ ] list_directory
-        - [ ] search_files (Spotlight-style via NSMetadataQuery)
+        - [x] read_file
+        - [x] list_directory
     - [ ] Web search (keyless endpoint, e.g. DuckDuckGo)
     - [ ] Run Command (gated behind confirmation prompt and checked for destructive command)
     - [ ] Interacting with macOS natively
