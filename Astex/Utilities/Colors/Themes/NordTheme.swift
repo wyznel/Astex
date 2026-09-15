@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct NordTheme: CustomTheme {
+    static let shared = NordTheme()
+    
     let raw = "Nord"
     let background: Color = Color(
         red: 0.180,

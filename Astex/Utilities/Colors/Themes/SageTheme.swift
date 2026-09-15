@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct SageTheme: CustomTheme {
+    static let shared = SageTheme()
+    
     let raw = "Sage"
     
     let background: Color = Color(nsColor: NSColor(name: nil) { appearance in

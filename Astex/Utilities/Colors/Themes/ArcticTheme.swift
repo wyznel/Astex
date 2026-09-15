@@ -7,6 +7,8 @@
 import SwiftUI
 
 struct ArcticTheme: CustomTheme {
+    static let shared = ArcticTheme()
+    
     let raw = "Arctic"
     let background = Color(nsColor: NSColor(name: nil) { appearance in
         appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua

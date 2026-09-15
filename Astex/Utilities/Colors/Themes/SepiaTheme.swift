@@ -7,6 +7,8 @@
 import SwiftUI
 
 struct SepiaTheme: CustomTheme {
+    static let shared = SepiaTheme()
+    
     let raw = "Sepia"
     let background: Color = Color(nsColor: NSColor(name: nil) { appearance in
         appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ?

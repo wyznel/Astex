@@ -13,17 +13,28 @@ public enum ColourThemes: String, CaseIterable, Identifiable {
     
     public var id: String { theme.raw }
     
+//    var theme: any CustomTheme {
+//        switch self {
+//        case .arctic:
+//            ArcticTheme()
+//        case .sepia:
+//            SepiaTheme()
+//        case .sage:
+//            SageTheme()
+//        case .nord:
+//            NordTheme()
+//        }
+//
+//    }
+}
+
+extension ColourThemes {
     var theme: any CustomTheme {
         switch self {
-        case .arctic:
-            ArcticTheme()
-        case .sepia:
-            SepiaTheme()
-        case .sage:
-            SageTheme()
-        case .nord:
-            NordTheme()
+        case .arctic: ArcticTheme.shared
+        case .sepia:  SepiaTheme.shared
+        case .sage:   SageTheme.shared
+        case .nord:   NordTheme.shared
         }
-
     }
 }
