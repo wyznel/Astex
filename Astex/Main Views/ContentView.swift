@@ -136,6 +136,17 @@ struct ContentView: View {
             
         }
         .navigationSplitViewStyle(.balanced)
+        .contentShape(Rectangle())
+        .dropDestination(for: URL.self) { urls, _ in
+            guard !settings.settingsOpened else { return false }
+            acceptDroppedFiles(urls)
+            return true
+        } isTargeted: { isTargeted in
+            withAni {
+                isDropTargeted = isTargeted && !settings.settingsOpened
+            }
+        }
+        .animation(.spring(duration: settings.animationDelay * 2), value: isDropTargeted)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
             Task {
                 await llm.stopAllModels()
@@ -248,15 +259,6 @@ struct ContentView: View {
 
             if chatWindowEmpty { Spacer() }
         }
-        .dropDestination(for: URL.self) { urls, _ in
-            acceptDroppedFiles(urls)
-            return true
-        } isTargeted: { isTargeted in
-            withAni {
-                isDropTargeted = isTargeted
-            }
-        }
-        .animation(.spring(duration: settings.animationDelay * 2), value: isDropTargeted)
     }
     
 // MARK: - Prompt Sending

@@ -7,5 +7,5 @@
 import UniformTypeIdentifiers
 
 public struct AllowedFileTypes {
-    public let types: [UTType] = [.text, .pdf, .html, .rtf, .plainText, .css, .json, .javaScript, .pythonScript, .xml]
+    public let types: [UTType] = [.text, .pdf, .html, .rtf, .plainText, .css, .json, .javaScript, .pythonScript, .xml, .shellScript]
 }
