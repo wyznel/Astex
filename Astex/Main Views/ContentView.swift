@@ -158,14 +158,18 @@ struct ContentView: View {
                     .ignoresSafeArea()
 
                 if settings.isBackgroundImageEnabled {
-                    Image(settings.background.bg.fileName)
-                        .resizable()
-                        .ignoresSafeArea()
-                        .scaledToFill()
-                        .blur(radius: settings.backgroundBlur, opaque: true)
-                        .opacity(0.6)
-                        .id(settings.background)
-                        .transition(.opacity)
+                    GeometryReader { geometry in
+                        Image(settings.background.bg.fileName)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .clipped()
+                            .blur(radius: settings.backgroundBlur, opaque: true)
+                            .opacity(0.6)
+                            .id(settings.background)
+                            .transition(.opacity)
+                    }
+                    .ignoresSafeArea()
                 }
             }
             .animation(

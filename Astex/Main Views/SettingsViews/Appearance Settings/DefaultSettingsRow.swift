@@ -27,8 +27,10 @@ struct DefaultSettingsRow<Content: View>: View {
     
     var body: some View {
         VStack(alignment: .leading) {
-            Text("\(title)")
-                .font(.headline)
+            if !title.isEmpty {
+                Text("\(title)")
+                    .font(.headline)
+            }
 
             HStack(spacing: 12) {
                 Text("\(subtitle)")

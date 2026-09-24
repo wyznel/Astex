@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SettingsTabView: View {
     @ObservedObject var settings = Settings.shared
+    @Environment(\.appearsActive) var appearsActive
 
     var body: some View {
         VStack {
@@ -35,6 +36,22 @@ struct SettingsTabView: View {
                     .toggleStyle(.switch)
             }
             
+            DefaultSettingsRow(title: "", subtitle: "Launch at Login") {
+                Toggle("", isOn: Binding(
+                    get: { settings.launchAtLogin },
+                    set: { settings.setLaunchAtLogin($0) }
+                ))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+            }
+            .onAppear {
+                settings.refreshLaunchAtLogin()
+            }
+            .onChange(of: appearsActive) { _, newValue in
+                guard newValue else { return }
+                settings.refreshLaunchAtLogin()
+            }
+
             Divider()
             
             Button {

@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import ServiceManagement
 
 @MainActor
 class Settings: ObservableObject {
@@ -34,6 +35,8 @@ class Settings: ObservableObject {
     
     @AppStorage("DownloadFinishedNotification") var showModelDownloadCompleteNotifications = true
     
+    @Published private(set) var launchAtLogin = false
+
     @AppStorage("backgroundBlur") var backgroundBlur: Double = 30.0
     @AppStorage("backgroundToggle") var isBackgroundImageEnabled: Bool = false
     @AppStorage("Appearance") var lightScheme: AppearanceOption = .system
@@ -48,5 +51,25 @@ class Settings: ObservableObject {
             objectWillChange.send()
         }
     }
-    private init() {}
+    private init() {
+        refreshLaunchAtLogin()
+    }
+
+    func setLaunchAtLogin(_ isEnabled: Bool) {
+        do {
+            if isEnabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            print("Could not change the launch-at-login setting: \(error.localizedDescription)")
+        }
+
+        refreshLaunchAtLogin()
+    }
+
+    func refreshLaunchAtLogin() {
+        launchAtLogin = SMAppService.mainApp.status == .enabled
+    }
 }
