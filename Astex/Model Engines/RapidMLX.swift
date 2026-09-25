@@ -32,15 +32,8 @@ class RapidMLXEngine {
                         $0.createdAt < $1.createdAt
                     }
                     var messageHistory = sorted.compactMap { message -> RapidMLX.ChatMessage? in
-                        if message.type == .llm(.tool) {
-                            return nil
-                        } else if message.type == .user {
-                            return .user(message.response)
-                        } else if message.type != .llm(.thinking) {
-                            return .assistant(message.response)
-                        } else {
-                            return .assistant("")
-                        }
+                        guard let text = message.contextText else { return nil }
+                        return message.type == .user ? .user(text) : .assistant(text)
                     }
                     messageHistory.insert(.system(
                         """
@@ -71,21 +64,33 @@ class RapidMLXEngine {
                     let activeTools: [any RapidMLX.ToolProtocol] = (toolRegistry != nil && !toolRegistry!.isEmpty)
                         ? toolRegistry!.allRapidMLXTools : []
                     
-                    for try await chunk in try client.chatWithTools(
-                        messages: messageHistory,
-                        tools: activeTools
-                    ) {
-                        try Task.checkCancellation()
-                        switch chunk {
-                        case .content(let token):
-                            continuation.yield(.content(token))
-                        case .toolCallsReady(let tools):
-                            print(tools)
-                            for tool in tools {
-                                continuation.yield(.toolCall("\n> Tool `\(tool.function.name)` executed.\n"))
+                    let schemas = try activeTools.toChatCompletionTools()
+                    for _ in 0..<10 {
+                        var assistantMessage: RapidMLX.ChatMessage?
+                        for try await chunk in client.chatStreamEvents(
+                            messageHistory, tools: schemas, toolChoice: .auto
+                        ) {
+                            try Task.checkCancellation()
+                            switch chunk {
+                            case .content(let token):
+                                continuation.yield(.content(token))
+                            case .toolCallsReady:
+                                break
+                            case .finished(let message):
+                                assistantMessage = message
                             }
-                        case .finished:
-                            break
+                        }
+                        guard let message = assistantMessage,
+                              let calls = message.toolCalls, !calls.isEmpty else { break }
+                        messageHistory.append(message)
+                        for call in calls {
+                            guard let registry = toolRegistry else { break }
+                            let result = await registry.execute(
+                                name: call.function.name, jsonString: call.function.arguments
+                            )
+                            messageHistory.append(.toolResult(callId: call.id, content: result.json))
+                            continuation.yield(.toolCall(result))
+                            try Task.checkCancellation()
                         }
                     }
                     continuation.finish()
@@ -131,13 +136,8 @@ class RapidMLXEngine {
             sorted.append(promptForTitleGen)
             
             let messageHistory = sorted.compactMap { message -> RapidMLX.ChatMessage? in
-                if message.type == .llm(.tool) {
-                    return nil
-                } else if message.type == .user {
-                    return .user(message.response)
-                } else {
-                    return .assistant(message.response)
-                }
+                guard let text = message.contextText else { return nil }
+                return message.type == .user ? .user(text) : .assistant(text)
             }
             
             let response = try await client.chat(messageHistory)

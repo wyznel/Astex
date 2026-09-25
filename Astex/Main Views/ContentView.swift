@@ -32,7 +32,6 @@ struct ContentView: View {
     @State private var activeChat: Chat? = nil
     @State private var streamingChunks: [String] = []
     @State private var thinkingStreamingChunks: [String] = []
-    @State private var toolCallingChunks: [String] = []
     @State private var isModelLoading: Bool = false
     
     @State private var ollamaAvailableModels: [String] = []
@@ -363,15 +362,14 @@ struct ContentView: View {
                     if streamingChunks.last!.count >= chunkCharLimit {
                         streamingChunks.append("")
                     }
-                case .toolCall(let text):
+                case .toolCall(let result):
                     withAni {
                         isModelLoading = false
+                        let message = Message(toolExecution: result)
+                        modelContext.insert(message)
+                        chatAtStart?.messages.append(message)
                     }
-                    if toolCallingChunks.isEmpty {
-                        toolCallingChunks.append("")
-                    }
-                    
-                    toolCallingChunks[toolCallingChunks.count - 1] += text
+                    try modelContext.save()
                 case .loading(let loading):
                     if loading && streamingChunks.isEmpty && thinkingStreamingChunks.isEmpty {
                         withAni {
@@ -415,18 +413,6 @@ struct ContentView: View {
                 activeChat?.messages.append(llmThinking)
             }
         }
-        let allToolsCalled = toolCallingChunks.joined()
-        print(allToolsCalled)
-        
-        if !allToolsCalled.isEmpty {
-            withAni {
-                let toolCalledDisplay = Message(type: .llm(.tool), response: allToolsCalled)
-                modelContext.insert(toolCalledDisplay)
-                activeChat?.messages.append(toolCalledDisplay)
-            }
-        }
-        
-        
         let fullResponse = streamingChunks.joined()
         if !fullResponse.isEmpty {
             withAni {
@@ -436,7 +422,6 @@ struct ContentView: View {
             }
         }
         streamingChunks = []
-        toolCallingChunks = []
         thinkingStreamingChunks = []
         
     }
@@ -723,11 +708,11 @@ struct ContentView: View {
                       .foregroundStyle(.secondary)
                       .lineLimit(2)
                   HStack(spacing: 8) {
-                      Button("Always allow") { permissionStore.resolve(.alwaysAllow) }
-                      Button("Allow this chat") { permissionStore.resolve(.allowForChat) }
-                      Button("Allow once") { permissionStore.resolve(.allowOnce) }
-                      Button("Deny") { permissionStore.resolve(.denyOnce) }
-                      Button("Always deny") { permissionStore.resolve(.alwaysDeny) }
+                      Button("Always allow") { permissionStore.resolve(.alwaysAllow, requestID: request.id) }
+                      Button("Allow this chat") { permissionStore.resolve(.allowForChat, requestID: request.id) }
+                      Button("Allow once") { permissionStore.resolve(.allowOnce, requestID: request.id) }
+                      Button("Deny") { permissionStore.resolve(.denyOnce, requestID: request.id) }
+                      Button("Always deny") { permissionStore.resolve(.alwaysDeny, requestID: request.id) }
                   }
               }
               .padding(10)

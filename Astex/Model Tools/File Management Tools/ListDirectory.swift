@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Darwin
 import Ollama
 
 struct ListDirectoryInput: Sendable {
@@ -19,18 +20,19 @@ struct ListDirectoryOutput: Sendable {
     let path: String
     let items: [File]
     let message: String
+    var truncated: Bool = false
 }
 
 extension ListDirectoryOutput: nonisolated Codable {}
 
 enum ListDirectory {
-    nonisolated(unsafe) static let fileManager = FileManager.default
+    nonisolated static let maximumItems = 500
 
     static func makeTool() -> AnyTool<ListDirectoryInput, ListDirectoryOutput> {
         let tool = Tool<ListDirectoryInput, ListDirectoryOutput>(
             name: "list_files_in_directory",
             description: """
-                Lists the immediate contents of a directory. The tool does not list the contents of subdirectories. File sizes use decimal megabytes (MB).
+                Lists up to 500 immediate directory entries. The result states whether the list is partial. File sizes use decimal megabytes (MB).
                 """,
             parameters: [
                 "path": [
@@ -53,13 +55,29 @@ enum ListDirectory {
 
             do {
                 let keys: Set<URLResourceKey> = [.isDirectoryKey, .fileSizeKey]
-                let contents = try fileManager.contentsOfDirectory(
-                    at: directory,
-                    includingPropertiesForKeys: Array(keys),
-                    options: []
-                )
-
-                let items = try contents.map { url in
+                guard let stream = opendir(directory.path) else {
+                    throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+                }
+                defer { closedir(stream) }
+                var items: [File] = []
+                var truncated = false
+                while true {
+                    errno = 0
+                    guard let entry = readdir(stream) else {
+                        if errno != 0 { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+                        break
+                    }
+                    let name = withUnsafePointer(to: &entry.pointee.d_name) {
+                        $0.withMemoryRebound(to: CChar.self, capacity: Int(entry.pointee.d_namlen) + 1) {
+                            String(cString: $0)
+                        }
+                    }
+                    if name == "." || name == ".." { continue }
+                    guard items.count < maximumItems else {
+                        truncated = true
+                        break
+                    }
+                    let url = directory.appendingPathComponent(name)
                     let values = try url.resourceValues(forKeys: keys)
                     let isDirectory = values.isDirectory ?? false
                     let fileType: String
@@ -73,14 +91,14 @@ enum ListDirectory {
                     }
 
                     let byteCount = isDirectory ? 0 : values.fileSize ?? 0
-                    return File(
+                    items.append(File(
                         name: url.lastPathComponent,
                         file_type: fileType,
                         size_in_megabytes: byteCount / 1_000_000,
                         isDirectory: isDirectory
-                    )
+                    ))
                 }
-                .sorted { first, second in
+                items.sort { first, second in
                     if first.isDirectory != second.isDirectory {
                         return first.isDirectory
                     }
@@ -91,7 +109,8 @@ enum ListDirectory {
                     success: true,
                     path: directory.path,
                     items: items,
-                    message: "Found \(items.count) items."
+                    message: truncated ? "Partial result. The directory exceeds the 500-item limit." : "Found \(items.count) items.",
+                    truncated: truncated
                 )
             } catch {
                 return ListDirectoryOutput(

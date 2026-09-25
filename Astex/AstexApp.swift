@@ -12,6 +12,7 @@ import UserNotifications
 
 @main
 struct AstexApp: App {
+    private static let isTesting = ProcessInfo.processInfo.environment["ASTEX_TESTING"] == "1"
     
     @ObservedObject private var settings = Settings.shared
     
@@ -21,7 +22,7 @@ struct AstexApp: App {
             Message.self
         ])
 
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: Self.isTesting)
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
@@ -31,13 +32,13 @@ struct AstexApp: App {
     }()
 
     private let updaterController = SPUStandardUpdaterController(
-        startingUpdater: true,
+        startingUpdater: !Self.isTesting,
         updaterDelegate: nil,
         userDriverDelegate: nil
     )
     
     init() {
-        NotificationManager.shared.requestAuthorization()
+        if !Self.isTesting { NotificationManager.shared.requestAuthorization() }
     }
     
     private var preferredScheme: ColorScheme? {
@@ -55,7 +56,9 @@ struct AstexApp: App {
         WindowGroup {
             
             Group {
-                if !settings.isFirstOpen {
+                if Self.isTesting {
+                    EmptyView()
+                } else if !settings.isFirstOpen {
                     ContentView()
                         .frame(minWidth: 1000, minHeight: 512)
                         .toolbar(removing: .title)

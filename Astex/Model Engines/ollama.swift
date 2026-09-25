@@ -44,13 +44,8 @@ class OllamaEngine {
             sorted.append(promptForTitleGen)
             
             let messageHistory = sorted.compactMap { message -> Ollama.Chat.Message? in
-                if message.type == .llm(.tool) {
-                    return nil
-                } else if message.type == .user {
-                    return .user(message.response)
-                } else {
-                    return .assistant(message.response)
-                }
+                guard let text = message.contextText else { return nil }
+                return message.type == .user ? .user(text) : .assistant(text)
             }
             let response = try await client.chat(
                 model: "\(model)",
@@ -82,15 +77,8 @@ class OllamaEngine {
                     continuation.yield(.loading(true))
                     let sorted = previousMessages.sorted { $0.createdAt < $1.createdAt }
                     var messageHistory = sorted.compactMap { message -> Ollama.Chat.Message? in
-                        if message.type == .llm(.tool) {
-                            return nil
-                        } else if message.type == .user {
-                            return .user(message.response)
-                        } else if message.type == .llm(.thinking) {
-                            return .assistant(message.response)
-                        } else {
-                            return .assistant("")
-                        }
+                        guard let text = message.contextText else { return nil }
+                        return message.type == .user ? .user(text) : .assistant(text)
                     }
                     messageHistory.insert(.system(
                         """
@@ -174,14 +162,13 @@ class OllamaEngine {
                         // specific tool types referenced here) and feed results back
                         for call in pendingToolCalls {
                             guard let registry = toolRegistry else { break }
-                            let result = try await registry.execute(
+                            let result = await registry.execute(
                                 name: call.function.name,
                                 arguments: call.function.arguments
                             )
-                            messageHistory.append(.tool(result))
-                            continuation.yield(.toolCall(
-                                "\n> Tool `\(call.function.name)` executed.\n"
-                            ))
+                            messageHistory.append(.tool(result.json))
+                            continuation.yield(.toolCall(result))
+                            try Task.checkCancellation()
                         }
                     }
 

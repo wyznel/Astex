@@ -14,7 +14,18 @@
 		B5CD49FC2FE1FFFA00FAC142 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = B5CD49FB2FE1FFF500FAC142 /* .gitignore */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		A00000000000000000000009 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B5396DAB2FE0B03C000B81FD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B5396DB22FE0B03C000B81FD;
+			remoteInfo = Astex;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		A00000000000000000000002 /* AstexTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = AstexTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5396DB32FE0B03C000B81FD /* Astex.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Astex.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5CD49FB2FE1FFF500FAC142 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -30,6 +41,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		A00000000000000000000001 /* AstexTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AstexTests;
+			sourceTree = "<group>";
+		};
 		B5396DB52FE0B03C000B81FD /* Astex */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -41,6 +57,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		A00000000000000000000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B5396DB02FE0B03C000B81FD /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -58,6 +81,7 @@
 		B5396DAA2FE0B03C000B81FD = {
 			isa = PBXGroup;
 			children = (
+				A00000000000000000000001 /* AstexTests */,
 				B5CD49FB2FE1FFF500FAC142 /* .gitignore */,
 				B5396DB52FE0B03C000B81FD /* Astex */,
 				B5396DB42FE0B03C000B81FD /* Products */,
@@ -68,6 +92,7 @@
 			isa = PBXGroup;
 			children = (
 				B5396DB32FE0B03C000B81FD /* Astex.app */,
+				A00000000000000000000002 /* AstexTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -75,6 +100,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		A00000000000000000000003 /* AstexTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000004 /* Build configuration list for PBXNativeTarget "AstexTests" */;
+			buildPhases = (
+				A00000000000000000000005 /* Sources */,
+				A00000000000000000000006 /* Frameworks */,
+				A00000000000000000000007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A00000000000000000000008 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A00000000000000000000001 /* AstexTests */,
+			);
+			name = AstexTests;
+			packageProductDependencies = (
+			);
+			productName = AstexTests;
+			productReference = A00000000000000000000002 /* AstexTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		B5396DB22FE0B03C000B81FD /* Astex */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B5396DC02FE0B03D000B81FD /* Build configuration list for PBXNativeTarget "Astex" */;
@@ -111,6 +159,7 @@
 				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
+                        A00000000000000000000003 = { CreatedOnToolsVersion = 2660; TestTargetID = B5396DB22FE0B03C000B81FD; };
 					B5396DB22FE0B03C000B81FD = {
 						CreatedOnToolsVersion = 26.5;
 					};
@@ -136,12 +185,20 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				A00000000000000000000003 /* AstexTests */,
 				B5396DB22FE0B03C000B81FD /* Astex */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		A00000000000000000000007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B5396DB12FE0B03C000B81FD /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -153,6 +210,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A00000000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B5396DAF2FE0B03C000B81FD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -162,7 +226,43 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		A00000000000000000000008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B5396DB22FE0B03C000B81FD /* Astex */;
+			targetProxy = A00000000000000000000009 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		A0000000000000000000000A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.6;
+				PRODUCT_BUNDLE_IDENTIFIER = bherbert.AstexTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Astex.app/Contents/MacOS/Astex";
+			};
+			name = Debug;
+		};
+		A0000000000000000000000B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.6;
+				PRODUCT_BUNDLE_IDENTIFIER = bherbert.AstexTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Astex.app/Contents/MacOS/Astex";
+			};
+			name = Release;
+		};
 		B5396DBE2FE0B03D000B81FD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -388,6 +488,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		A00000000000000000000004 /* Build configuration list for PBXNativeTarget "AstexTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A0000000000000000000000A /* Debug */,
+				A0000000000000000000000B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		B5396DAE2FE0B03C000B81FD /* Build configuration list for PBXProject "Astex" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

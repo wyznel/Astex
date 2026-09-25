@@ -14,8 +14,6 @@ struct SettingsTabView: View {
     var body: some View {
         VStack {
             
-            
-            
             DefaultSettingsRow(title: "Notifications", subtitle: "Show Notifications when a model has finished downloading") {
                 Toggle("blank", isOn: $settings.showModelDownloadCompleteNotifications)
                     .labelsHidden()

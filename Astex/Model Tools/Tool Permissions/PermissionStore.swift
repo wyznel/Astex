@@ -21,7 +21,7 @@ final class PermissionStore: ObservableObject {
     }
     
     struct PermissionRequest: Identifiable {
-        let id = UUID()
+        let id: UUID
         let toolName: String
         let modelName: String
         let capability: ToolCapability
@@ -29,21 +29,27 @@ final class PermissionStore: ObservableObject {
         let sessionID: ObjectIdentifier?
     }
     
-    @Published var pendingRequest: PermissionRequest?
+    @Published private(set) var pendingRequest: PermissionRequest?
     @Published private(set) var permissions: [ToolCapability: ToolPermission] = [:]
     
-    init() {
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         for cap in ToolCapability.allCases {
             permissions[cap] = readStoredPermission(for: cap)
         }
     }
     
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
     
     var currentSessionID: ObjectIdentifier?
     private var sessionGrants: [ObjectIdentifier: Set<ToolCapability>] = [:]
     
-    private var continuation: CheckedContinuation<Bool, Never>?
+    private struct QueuedRequest {
+        let request: PermissionRequest
+        let continuation: CheckedContinuation<Bool, Never>
+    }
+
+    private var queue: [QueuedRequest] = []
     
     private func readStoredPermission(for cap: ToolCapability) -> ToolPermission {
         return defaults.string(forKey: Self.key(for: cap))
@@ -59,70 +65,92 @@ final class PermissionStore: ObservableObject {
         permissions[cap] = permission
     }
     
-    func requestPermission(tool: String, capability: ToolCapability, summary: String) async -> Bool {
-    
-        if let sessionID = currentSessionID, sessionGrants[sessionID]?.contains(capability) == true {
-            return true
-        }
-        
+    private func decision(for capability: ToolCapability, sessionID: ObjectIdentifier?) -> Bool? {
         switch permission(for: capability) {
         case .alwaysAllow: return true
         case .denied: return false
         case .askEveryTime:
-            
-            if Task.isCancelled { return false}
-            
-            let modelName = Settings.shared.selectedEngine == .ollama ? Settings.shared.selectedModel : Settings.shared.rapidMLXSelectedModel
-            
-            return await withTaskCancellationHandler {
-                await withCheckedContinuation { cont in
-                    continuation = cont
-                    pendingRequest = PermissionRequest(
-                        toolName: tool,
-                        modelName: modelName,
-                        capability: capability,
-                        summary: summary,
-                        sessionID: currentSessionID
-                    )
-                }
-            } onCancel: {
-                Task { @MainActor in
-                    PermissionStore.shared.cancelPending()
-                }
-            }
+            if let sessionID, sessionGrants[sessionID]?.contains(capability) == true { return true }
+            return nil
         }
     }
-    
-    func cancelPending() {
-        guard let cont = continuation else { return }
-        continuation = nil
-        pendingRequest = nil
-        cont.resume(returning: false)
+
+    func requestPermission(tool: String, capability: ToolCapability, summary: String) async -> Bool {
+        guard !Task.isCancelled else { return false }
+        let sessionID = currentSessionID
+        if let decision = decision(for: capability, sessionID: sessionID) { return decision }
+        let request = PermissionRequest(
+            id: UUID(), toolName: tool,
+            modelName: Settings.shared.selectedEngine == .ollama
+                ? Settings.shared.selectedModel : Settings.shared.rapidMLXSelectedModel,
+            capability: capability, summary: summary, sessionID: sessionID
+        )
+        return await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                guard !Task.isCancelled else {
+                    continuation.resume(returning: false)
+                    return
+                }
+                queue.append(QueuedRequest(request: request, continuation: continuation))
+                presentNext()
+            }
+        } onCancel: {
+            Task { @MainActor in self.cancel(requestID: request.id) }
+        }
     }
-    
-    func resolve(_ choice: UserChoice) {
-        guard let cont = continuation, let req = pendingRequest else { return }
-        continuation = nil
+
+    private func presentNext() {
+        while let first = queue.first {
+            if let decision = decision(for: first.request.capability, sessionID: first.request.sessionID) {
+                queue.removeFirst().continuation.resume(returning: decision)
+            } else {
+                pendingRequest = first.request
+                return
+            }
+        }
         pendingRequest = nil
+    }
+
+    private func cancel(requestID: UUID) {
+        guard let index = queue.firstIndex(where: { $0.request.id == requestID }) else { return }
+        queue.remove(at: index).continuation.resume(returning: false)
+        presentNext()
+    }
+
+    func cancelPending() {
+        let cancelled = queue
+        queue.removeAll()
+        pendingRequest = nil
+        for item in cancelled { item.continuation.resume(returning: false) }
+    }
+
+    func resolve(_ choice: UserChoice, requestID: UUID) {
+        guard let first = queue.first, first.request.id == requestID else { return }
+        queue.removeFirst()
+        pendingRequest = nil
+        let req = first.request
+        let allowed: Bool
         switch choice {
         case .allowOnce:
-            cont.resume(returning: true)
+            allowed = true
         case .allowForChat:
             if let sessionID = req.sessionID {
                 sessionGrants[sessionID, default: []].insert(req.capability)
             }
-            cont.resume(returning: true)
+            allowed = true
         case .alwaysAllow:
             set(.alwaysAllow, for: req.capability)
-            cont.resume(returning: true)
+            allowed = true
         case .denyOnce:
-            cont.resume(returning: false)
+            allowed = false
         case .alwaysDeny:
             set(.denied, for: req.capability)
-            cont.resume(returning: false)
+            allowed = false
         }
+        first.continuation.resume(returning: allowed)
+        presentNext()
     }
- 
+
     private static func key(for cap: ToolCapability) -> String {
         return "perm.\(cap.rawValue)"
     }
