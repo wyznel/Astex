@@ -52,6 +52,14 @@ struct AstexApp: App {
         }
     }
     
+    func hideTrafficLights(_ temp: Bool) {
+        if let window = NSApp.windows.first {
+            window.standardWindowButton(.closeButton)?.isHidden = temp
+            window.standardWindowButton(.miniaturizeButton)?.isHidden = temp
+            window.standardWindowButton(.zoomButton)?.isHidden = temp
+        }
+    }
+    
     var body: some Scene {
         WindowGroup {
             
@@ -79,6 +87,16 @@ struct AstexApp: App {
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates..."){
                     updaterController.updater.checkForUpdates()
+                }
+                
+                Button(settings.areTrafficLightsVisible ? "Hide Traffic Lights" : "Show Traffic Lights") {
+                    if settings.areTrafficLightsVisible {
+                        settings.areTrafficLightsVisible = false
+                        hideTrafficLights(true)
+                    }else {
+                        settings.areTrafficLightsVisible = true
+                        hideTrafficLights(false)
+                    }
                 }
             }
         }

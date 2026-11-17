@@ -16,6 +16,8 @@ class Settings: ObservableObject {
     @AppStorage("IsRapidMLXInstalled") var isRapidMLXInstalled: Bool = false
     @AppStorage("IsOllamaInstalled") var isOllamaInstalled: Bool = false
     
+    @AppStorage("TrafficLightVisible") var areTrafficLightsVisible: Bool = true 
+    
     @AppStorage("SuppressModelDeletionConfirmaton") var suppressModelDeletionConfirmation: Bool = false
     @AppStorage("ModelInformationShowSizeOnDisk") var showSizeOnDisk: Bool = true
     @AppStorage("ModelInformationShowFormat") var showFormat: Bool = true

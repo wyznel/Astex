@@ -159,7 +159,10 @@
 				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
-                        A00000000000000000000003 = { CreatedOnToolsVersion = 2660; TestTargetID = B5396DB22FE0B03C000B81FD; };
+					A00000000000000000000003 = {
+						CreatedOnToolsVersion = 2660;
+						TestTargetID = B5396DB22FE0B03C000B81FD;
+					};
 					B5396DB22FE0B03C000B81FD = {
 						CreatedOnToolsVersion = 26.5;
 					};
